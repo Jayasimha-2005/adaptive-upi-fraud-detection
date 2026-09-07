@@ -6,10 +6,12 @@
 Datasets/
 datasets/
 
-# ── Model artifacts (large binary files) ─────────────────────────────────────
-experiments/E1_lightgbm/model.txt
-experiments/E1_lightgbm/preprocessing.joblib
-experiments/E1_lightgbm/predictions.parquet
+# ── Model artifacts — TRACKED (all under 100MB GitHub limit) ─────────────────
+# experiments/E1_lightgbm/model.txt          → 6.64 MB  — teammates need this
+# experiments/E1_lightgbm/preprocessing.joblib → 0.06 MB — needed for inference
+# experiments/E1_lightgbm/predictions.parquet  → 3.19 MB — needed for Phase 2
+
+# ── Encoding comparison outputs (regenerate locally) ─────────────────────────
 experiments/E1_encoding_comparison/
 
 # ── Keep these experiment artifacts (small, informative) ─────────────────────
