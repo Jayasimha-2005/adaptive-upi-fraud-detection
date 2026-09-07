@@ -1,0 +1,14 @@
+{
+  "train_dt_min": 86400.0,
+  "train_dt_max": 15811131.0,
+  "train_dt_span_seconds": 15724731.0,
+  "train_dt_span_days": 182.0,
+  "train_dt_span_months": 5.98,
+  "dt_unit": "seconds (relative, not Unix timestamp)",
+  "test_dt_min_sample": 18403224.0,
+  "test_dt_max_sample": 20088620.0,
+  "train_avg_tx_per_day": 3244.7,
+  "total_train_rows": 590540,
+  "total_fraud": 20663,
+  "fraud_rate_pct": 3.499
+}

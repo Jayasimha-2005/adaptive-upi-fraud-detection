@@ -1,0 +1,59 @@
+# =============================================================================
+# Adaptive Financial Fraud Detection — .gitignore
+# =============================================================================
+
+# ── Raw datasets (NEVER commit — too large, Kaggle ToS) ──────────────────────
+Datasets/
+datasets/
+
+# ── Model artifacts (large binary files) ─────────────────────────────────────
+experiments/E1_lightgbm/model.txt
+experiments/E1_lightgbm/preprocessing.joblib
+experiments/E1_lightgbm/predictions.parquet
+experiments/E1_encoding_comparison/
+
+# ── Keep these experiment artifacts (small, informative) ─────────────────────
+# experiments/E1_lightgbm/metrics.json         → tracked
+# experiments/E1_lightgbm/feature_names.json   → tracked
+# experiments/E1_lightgbm/split_meta.json      → tracked
+# experiments/E1_lightgbm/run_metadata.json    → tracked
+# experiments/E1_lightgbm/*.png                → tracked
+# experiments/E1_lightgbm/*.csv                → tracked
+# experiments/E1_lightgbm/run.log              → tracked
+
+# ── Python cache ─────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+venv/
+env/
+.env
+.venv
+ENV/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+
+# ── Logs and temp ────────────────────────────────────────────────────────────
+*.log
+*.tmp
+*.temp
+
+# ── Secrets / credentials ────────────────────────────────────────────────────
+.env
+*.key
+*.pem
+secrets.yaml
+credentials.json

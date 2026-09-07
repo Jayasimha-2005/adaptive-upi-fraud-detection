@@ -1,0 +1,4 @@
+Dataset,Target_Column,Label_Type,Positive_Class,Negative_Class,Fraud_Count,Legit_Count,Total_Rows,Fraud_Pct,Class_Ratio,Unknown_Labels,Label_Encoding,Label_Trustworthy,Notes
+BAF-Base,fraud_bool,Binary,1,0,11029,988971,1000000,1.10%,89.7:1,0,Binary integer (0/1),Yes,"Fraud rate increases from month 0 (1.13%) to month 7 (1.47%), showing drift"
+PaySim,isFraud,Binary,1,0,8213,6354407,6362620,0.13%,773.8:1,0,Binary integer (0/1),Yes (simulated),Fraud ONLY in TRANSFER (0.77%) and CASH_OUT (0.18%) types. isFlaggedFraud catches only 16 of 8213 fraud cases.
+CreditCard10K,is_fraud,Binary,1,0,151,9849,10000,1.51%,65.2:1,0,Binary integer (0/1),Unknown,Dataset appears synthetic. Label generation method unknown. No source documentation in repository.

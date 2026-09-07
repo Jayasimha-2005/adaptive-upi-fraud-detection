@@ -1,0 +1,28 @@
+Criterion,BAF-Base,PaySim,CreditCard10K
+Rows,"1,000,000","6,362,620","10,000"
+Columns,32,11,10
+Fraud Count,"11,029","8,213",151
+Fraud Rate,1.10%,0.13%,1.51%
+Class Ratio,89.7:1,773.8:1,65.2:1
+Timestamp Quality,MODERATE - Month only (0-7),EXCELLENT - Hourly step (1-743),"POOR - Hour only, no date"
+Entity History,POOR - None,MODERATE - nameOrig (but 99.99% single-tx),POOR - None
+LSTM/GRU Suitability,POOR - Not suitable,WEAK - No entity history,POOR - Not suitable
+Concept Drift,GOOD - Fraud rate change over 8 months,POOR - 1-month simulation,POOR - No time context
+Streaming/Kafka,POOR - Monthly batches,"GOOD - Hourly step, 6M rows",POOR - No date
+UPI Relevance,"POOR - Bank account fraud, not UPI","POOR - Mobile money, not UPI","POOR - Credit card fraud, not UPI"
+Feature Richness,"EXCELLENT - 32 cols, behavioral features","MODERATE - 11 cols, balance-based","MODERATE - 10 cols, basic features"
+Behavioral Features,"EXCELLENT - Velocity, device, session","MODERATE - Balance deltas, type","MODERATE - Velocity (1 col), trust score"
+Data Quality,"HIGH - No missing, no duplicates",MODERATE - Balance inconsistencies,MODERATE - Appears synthetic/toy
+Data Provenance,Synthetic (IEEE competition),Simulated (Mobile money sim),Unknown (possibly toy)
+Data Volume Score (1-10),8,9,2
+Fraud Label Quality (1-10),9,7,5
+Temporal Info (1-10),5,8,1
+LSTM/GRU (1-10),3,5,1
+Feature Richness (1-10),8,5,4
+Behavioral Features (1-10),7,5,3
+UPI Relevance (1-10),3,3,2
+Class Balance (1-10),6,3,6
+Concept Drift (1-10),7,5,1
+Streaming (1-10),4,7,2
+Reproducibility (1-10),9,8,4
+OVERALL SCORE (1-10),6.4,5.5,2.7

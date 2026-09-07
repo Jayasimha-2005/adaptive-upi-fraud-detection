@@ -1,0 +1,9 @@
+Dataset,Directory,File,Format,Size_MB,Rows,Columns,Approx_Memory_MB,Status
+BAF-Base,Datasets/BAF,Base.csv,CSV,203.6,1000000,32,480.7,Analyzed
+BAF-Variant-I,Datasets/BAF,Variant I.csv,CSV,203.6,1000000,32,480.7,Headers Verified
+BAF-Variant-II,Datasets/BAF,Variant II.csv,CSV,203.6,1000000,32,480.7,Headers Verified
+BAF-Variant-III,Datasets/BAF,Variant III.csv,CSV,240.4,1000000,34,510.0,Headers Verified (2 extra cols)
+BAF-Variant-IV,Datasets/BAF,Variant IV.csv,CSV,203.6,1000000,32,480.7,Headers Verified
+BAF-Variant-V,Datasets/BAF,Variant V.csv,CSV,240.5,1000000,34,510.0,Headers Verified (2 extra cols)
+PaySim,Datasets/Paysim,paysim dataset.csv,CSV,493.5,6362620,11,546.5,Fully Analyzed
+CreditCard10K,Datasets/Credit card Fraud detection,credit_card_fraud_10k.csv,CSV,0.36,10000,10,1.28,Fully Analyzed

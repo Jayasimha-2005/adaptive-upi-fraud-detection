@@ -1,0 +1,111 @@
+# ============================================================
+# Phase 1 — LightGBM Baseline Configuration
+# Experiment: E1_lightgbm
+# Project: Adaptive Financial Fraud Detection
+# ============================================================
+
+# --- Paths ---
+paths:
+  raw_transaction: "Datasets/IEEE CIS-20260829T103704Z-1-001/IEEE CIS/train_transaction.csv"
+  raw_identity:    "Datasets/IEEE CIS-20260829T103704Z-1-001/IEEE CIS/train_identity.csv"
+  processed_dir:   "datasets/processed/ieee_cis"
+  experiments_dir: "experiments/E1_lightgbm"
+  reports_dir:     "reports/phase1"
+
+# --- Reproducibility ---
+random_seed: 42
+
+# --- Temporal Split
+# TransactionDT is in seconds.
+# Training span: 182 days total.
+# Train:  days   1–127 (70%)  -> DT cutoff: 127 * 86400 = 10,972,800
+# Val:    days 128–155 (15%)  -> DT cutoff: 155 * 86400 = 13,392,000
+# Test:   days 156–182 (15%)
+split:
+  train_dt_max: 10972800    # day 127 end (seconds)
+  val_dt_max:   13392000    # day 155 end (seconds)
+  # test: everything above val_dt_max
+
+# --- Feature policy ---
+features:
+  # Columns to unconditionally drop (identifiers, target, leakage)
+  drop_always:
+    - "isFraud"
+    - "TransactionID"
+
+  # High-missingness threshold: drop V-columns above this fraction
+  v_column_drop_missing_threshold: 0.80
+
+  # D-columns to drop (>80% missing — confirmed in analysis)
+  drop_d_columns:
+    - "D6"
+    - "D7"
+    - "D8"
+    - "D9"
+    - "D12"
+    - "D13"
+    - "D14"
+
+  # Other columns to drop (>80% missing)
+  drop_other:
+    - "dist2"    # 93.6% missing
+
+  # Temporal feature engineering from TransactionDT
+  create_dt_features: true
+
+  # Whether to create missingness indicator columns
+  create_missingness_indicators: true
+  # Only for columns with missingness above this threshold
+  missingness_indicator_threshold: 0.05
+
+# --- Preprocessing ---
+preprocessing:
+  # Numerical imputation strategy (fit on train only)
+  numerical_imputer: "median"
+
+  # Categorical missing fill
+  categorical_fill: "MISSING"
+
+  # Whether to label-encode categoricals for LightGBM
+  encode_categoricals: true
+
+# --- LightGBM Model ---
+model:
+  objective: "binary"
+  metric: "average_precision"
+  boosting_type: "gbdt"
+  learning_rate: 0.05
+  num_leaves: 63
+  max_depth: -1
+  min_child_samples: 50
+  feature_fraction: 0.8
+  bagging_fraction: 0.8
+  bagging_freq: 5
+  reg_alpha: 0.1
+  reg_lambda: 1.0
+  is_unbalance: true          # handles class imbalance
+  n_estimators: 1000          # upper bound; early stopping will stop earlier
+  early_stopping_rounds: 50
+  verbose: -1
+  n_jobs: -1
+
+# --- Evaluation ---
+evaluation:
+  # Threshold selected on validation set only
+  threshold_metric: "f1"      # metric to maximize for threshold selection
+  # Metrics to compute
+  metrics:
+    - "pr_auc"
+    - "roc_auc"
+    - "precision"
+    - "recall"
+    - "f1"
+    - "mcc"
+    - "balanced_accuracy"
+    - "fpr"
+    - "fnr"
+
+# --- SHAP ---
+shap:
+  enabled: true
+  sample_size: 5000           # compute SHAP on this many validation rows

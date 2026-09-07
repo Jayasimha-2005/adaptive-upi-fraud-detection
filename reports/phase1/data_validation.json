@@ -1,0 +1,70 @@
+{
+  "files": {
+    "train_transaction": {
+      "path": "C:\\Users\\Harini\\Documents\\GitHub\\Jayasimha-github\\adaptive-upi-fraud-detection\\Datasets\\IEEE CIS-20260829T103704Z-1-001\\IEEE CIS\\train_transaction.csv",
+      "size_mb": 683.35
+    },
+    "train_identity": {
+      "path": "C:\\Users\\Harini\\Documents\\GitHub\\Jayasimha-github\\adaptive-upi-fraud-detection\\Datasets\\IEEE CIS-20260829T103704Z-1-001\\IEEE CIS\\train_identity.csv",
+      "size_mb": 26.53
+    }
+  },
+  "train_transaction": {
+    "rows": 590540,
+    "cols": 394,
+    "tx_id_min": 2987000,
+    "tx_id_max": 3577539,
+    "duplicate_tx_ids": 0,
+    "fraud_count": 20663,
+    "legit_count": 569877,
+    "fraud_pct": 3.499,
+    "class_ratio": 27.6,
+    "dt_min_sec": 86400.0,
+    "dt_max_sec": 15811131.0,
+    "dt_span_days": 182.0,
+    "dt_unit": "seconds_relative",
+    "amount_stats": {
+      "count": 590540.0,
+      "mean": 135.0272,
+      "std": 239.1625,
+      "min": 0.251,
+      "25%": 43.321,
+      "50%": 68.769,
+      "75%": 125.0,
+      "max": 31937.391
+    },
+    "missing_zero_cols": 20,
+    "missing_low_cols_0_20": 162,
+    "missing_mid_cols_20_80": 157,
+    "missing_high_cols_over_80": 55
+  },
+  "train_identity": {
+    "rows": 144233,
+    "cols": 41,
+    "duplicate_tx_ids": 0,
+    "missing_any_col_pct": 96.71
+  },
+  "linkage": {
+    "tx_unique_ids": 590540,
+    "id_unique_ids": 144233,
+    "overlap": 144233,
+    "pct_transactions_with_identity": 24.42,
+    "tx_only": 446307,
+    "id_only": 0,
+    "join_type": "LEFT JOIN (transaction is primary)"
+  },
+  "target": {
+    "column": "isFraud",
+    "unique_values": [
+      0,
+      1
+    ],
+    "null_count": 0,
+    "fraud_count": 20663,
+    "legit_count": 569877,
+    "fraud_pct": 3.499
+  },
+  "validation_status": "PASS",
+  "errors": [],
+  "warnings": []
+}

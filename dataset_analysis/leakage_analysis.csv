@@ -1,0 +1,9 @@
+Dataset,Feature,Why_Suspicious,Leakage_Risk,Recommendation
+BAF,device_fraud_count,"ALL ZEROS - if this were populated with post-event fraud counts from device, it would be leakage. Currently uninformative.",Confirmed leakage if nonzero in future; currently Safe (constant),"Remove from training features - zero variance, uninformative"
+BAF,velocity_6h / velocity_24h / velocity_4w,"These may incorporate real-time signals. If computed on the same batch including the fraud event, they are leakage.",Potential leakage,Use with caution. Ensure these are computed on data BEFORE the current transaction.
+BAF,date_of_birth_distinct_emails_4w,"If computed post-approval, this aggregates fraud signals. If computed pre-application, safe.",Potential leakage,Requires source documentation to determine computation timing.
+PaySim,isFlaggedFraud,This is a SYSTEM FLAG that theoretically flags fraud AFTER detection. Using it as a feature would be direct leakage.,Confirmed leakage,Remove completely from feature set. Only use isFraud as target.
+PaySim,newbalanceOrig,"Balance AFTER transaction. Computed simultaneously with fraud decision. In real-time, this is not available before fraud scoring.",High leakage risk,Remove from feature set for real-time inference. Use oldbalanceOrg only.
+PaySim,newbalanceDest,Balance of destination AFTER transaction. Same issue as newbalanceOrig.,High leakage risk,Remove from feature set for real-time inference.
+CreditCard,velocity_last_24h,"If this count includes the CURRENT transaction, it leaks information about transaction frequency at fraud time.",Potential leakage,"Must verify: does count include current transaction? If yes, subtract 1."
+CreditCard,location_mismatch,Location mismatch requires knowing cardholder location at time of transaction. Verify this is available in real-time.,Low risk (if computed in real-time),Safe if computed from device GPS vs. billing address. Verify computation method.

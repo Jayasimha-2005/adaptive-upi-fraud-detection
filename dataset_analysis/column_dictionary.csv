@@ -1,0 +1,54 @@
+Dataset,Column,Data_Type,Unique_Values,Missing_Pct,Example_Values,Description,Role,Leakage_Risk
+BAF,fraud_bool,int64,2,0%,"[0, 1]","Fraud label: 1=fraud, 0=legitimate",Target,None
+BAF,income,float64,9,0%,"[0.1, 0.2, 0.3, ..., 0.9]","Customer income (normalized, 9 bands)",Numerical feature,None
+BAF,name_email_similarity,float64,~999K,0%,"[0.0001, ..., 0.9999]",Similarity between name and email (0-1),Numerical feature,None
+BAF,prev_address_months_count,int64,374,0%,"[-1, 0, ..., 383]",Months at previous address (-1=unknown),Numerical feature,None
+BAF,current_address_months_count,int64,423,0%,"[-1, 0, ..., 428]",Months at current address (-1=unknown),Numerical feature,None
+BAF,customer_age,int64,9,0%,"[10, 20, 30, 40, 50, 60, 70, 80, 90]",Age in decade bands,Numerical feature,None
+BAF,days_since_request,float64,~989K,0%,"[0.0067, 0.010, ...]",Days since application request was made,Numerical feature,None
+BAF,intended_balcon_amount,float64,~995K,0%,"[-15.5, ..., 112.9]",Intended balance transfer amount (74% negative = sentinel values),Numerical feature,None
+BAF,payment_type,str,5,0%,"[AA, AB, AC, AD, AE]",Anonymized payment type categories,Categorical feature,None
+BAF,zip_count_4w,int64,6306,0%,"[1, ..., 6700]",Number of applications from same zip in 4 weeks,Numerical feature,None
+BAF,velocity_6h,float64,~999K,0%,"[-170.6, ..., 16715.6]",Application velocity in last 6 hours,Numerical feature,None
+BAF,velocity_24h,float64,~999K,0%,"[1300.3, ..., 9506.9]",Application velocity in last 24 hours,Numerical feature,None
+BAF,velocity_4w,float64,~999K,0%,"[2825.7, ..., 6994.8]",Application velocity in last 4 weeks,Numerical feature,None
+BAF,bank_branch_count_8w,int64,2326,0%,"[0, ..., 2385]",Bank branch count in 8 weeks,Numerical feature,None
+BAF,date_of_birth_distinct_emails_4w,int64,40,0%,"[0, ..., 39]",Distinct emails with same DOB in 4 weeks,Numerical feature,None
+BAF,employment_status,str,7,0%,"[CA, CB, CC, CD, CE, CF, CG]",Anonymized employment status,Categorical feature,None
+BAF,credit_risk_score,int64,551,0%,"[-170, ..., 389]",Credit risk score (higher = better),Numerical feature,None
+BAF,email_is_free,int64,2,0%,"[0, 1]",Whether email domain is free provider,Binary feature,None
+BAF,housing_status,str,7,0%,"[BA, BB, BC, BD, BE, BF, BG]",Anonymized housing status,Categorical feature,None
+BAF,phone_home_valid,int64,2,0%,"[0, 1]",Whether home phone is valid,Binary feature,None
+BAF,phone_mobile_valid,int64,2,0%,"[0, 1]",Whether mobile phone is valid,Binary feature,None
+BAF,bank_months_count,int64,33,0%,"[-1, 0, ..., 32]",Months with current bank (-1=unknown),Numerical feature,None
+BAF,has_other_cards,int64,2,0%,"[0, 1]",Whether applicant has other cards,Binary feature,None
+BAF,proposed_credit_limit,float64,12,0%,"[190, 200, 500, 1000, 1500, 2100]",Proposed credit limit (12 discrete values),Numerical feature,None
+BAF,foreign_request,int64,2,0%,"[0, 1]",Whether application is from foreign IP,Binary feature,None
+BAF,source,str,2,0%,"[INTERNET, TELEAPP]",Application channel,Categorical feature,None
+BAF,session_length_in_minutes,float64,~995K,0%,"[-1, 0.001, ..., 85.9]",Session duration (-1=TELEAPP),Numerical feature,None
+BAF,device_os,str,5,0%,"[linux, other, windows, x11, macintosh]",Operating system of device,Categorical feature,None
+BAF,keep_alive_session,int64,2,0%,"[0, 1]",Whether session kept alive,Binary feature,None
+BAF,device_distinct_emails_8w,int64,4,0%,"[-1, 0, 1, 2]",Distinct emails from device in 8w (-1=unknown),Numerical feature,None
+BAF,device_fraud_count,int64,1,0%,[0],CONSTANT ZERO - prior fraud from device. Uninformative.,Derived feature,Potential leakage if nonzero
+BAF,month,int64,8,0%,"[0, 1, 2, 3, 4, 5, 6, 7]","Month index (0-7, only temporal info available)",Timestamp,None
+PaySim,step,int64,743,0%,"[1, 2, ..., 743]","Hour of simulation (1-743, ~1 month)",Timestamp,None
+PaySim,type,str,5,0%,"[PAYMENT, TRANSFER, CASH_OUT, CASH_IN, DEBIT]",Transaction type,Categorical feature,None
+PaySim,amount,float64,Very high,0%,"[0.00, ..., 92445516.64]",Transaction amount,Numerical feature,None
+PaySim,nameOrig,str,Very high,0%,"[C1231006815, ...]","Originator ID (C=customer, M=merchant)",Identifier,None
+PaySim,oldbalanceOrg,float64,Very high,0%,"[0, ..., large]",Balance of originator before transaction,Numerical feature,None
+PaySim,newbalanceOrig,float64,Very high,0%,"[0, ..., large]",Balance of originator after transaction,Numerical feature,Potential leakage
+PaySim,nameDest,str,Very high,0%,"[C553264065, M1979787155, ...]","Destination ID (C=customer, M=merchant)",Identifier,None
+PaySim,oldbalanceDest,float64,Very high,0%,"[0, ..., large]",Balance of destination before transaction,Numerical feature,None
+PaySim,newbalanceDest,float64,Very high,0%,"[0, ..., large]",Balance of destination after transaction,Numerical feature,Potential leakage
+PaySim,isFraud,int64,2,0%,"[0, 1]","Fraud label: 1=fraud, 0=legitimate",Target,None
+PaySim,isFlaggedFraud,int64,2,0%,"[0, 1]",System flag for large TRANSFER fraud (only 16 flagged vs 8213 actual) - unreliable,Administrative/meta column,High leakage risk
+CreditCard,transaction_id,int64,10000,0%,"[1, 2, ..., 10000]","Sequential integer ID, no user linkage",Identifier,None
+CreditCard,amount,float64,8788,0%,"[0.0, ..., 1471.04]",Transaction amount (1 zero amount present),Numerical feature,None
+CreditCard,transaction_hour,int64,24,0%,"[0, 1, ..., 23]",Hour of transaction (0-23),Timestamp,None
+CreditCard,merchant_category,str,5,0%,"[Electronics, Travel, Grocery, Food, Clothing]",Merchant category (5 categories),Categorical feature,None
+CreditCard,foreign_transaction,int64,2,0%,"[0, 1]",Whether transaction is foreign,Binary feature,None
+CreditCard,location_mismatch,int64,2,0%,"[0, 1]",Whether location mismatches cardholder address,Binary feature,None
+CreditCard,device_trust_score,int64,75,0%,"[25, ..., 99]",Device trust score (25-99),Numerical feature,None
+CreditCard,velocity_last_24h,int64,10,0%,"[0, 1, ..., 9]",Number of transactions in last 24h (0-9),Numerical feature,None
+CreditCard,cardholder_age,int64,52,0%,"[18, ..., 69]",Cardholder age in years,Numerical feature,None
+CreditCard,is_fraud,int64,2,0%,"[0, 1]","Fraud label: 1=fraud, 0=legitimate",Target,None

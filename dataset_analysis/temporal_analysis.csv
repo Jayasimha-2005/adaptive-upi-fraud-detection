@@ -1,0 +1,4 @@
+Dataset,Timestamp_Column,Earliest,Latest,Time_Span,Granularity,Missing_Timestamps,Timezone,Chronologically_Ordered,Temporal_Drift_Detected,Streaming_Suitable,LSTM_Temporal_Support
+BAF-Base,month,0 (month 0),7 (month 7),8 months,Monthly (coarse),0,Unknown,No (not transaction-level),Yes - fraud rate rises over time,No - too coarse for streaming,Weak - only 8 time buckets
+PaySim,step,1 (hour 1),743 (hour 743),~31 days (1 month),Hourly,0,Unknown (simulated),Yes (by step),Cannot determine - single month simulation,Yes - can replay by step,Moderate - but 99.99% of users have only 1 transaction
+CreditCard10K,transaction_hour,0 (midnight),23 (11pm),No date info - hour only,Sub-daily (hour),0,Unknown,Unknown - no date,Cannot determine,No - no date/timestamp,"Not suitable - no date, no sequence"

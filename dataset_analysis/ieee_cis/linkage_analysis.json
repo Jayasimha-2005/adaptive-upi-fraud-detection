@@ -1,0 +1,10 @@
+{
+  "train_tx_unique_ids": 590540,
+  "train_id_unique_ids": 144233,
+  "overlap": 144233,
+  "pct_tx_with_identity": 24.42,
+  "only_in_transaction": 446307,
+  "only_in_identity": 0,
+  "join_type": "left join (not all transactions have identity)",
+  "id_duplicate_tx_ids": 0
+}

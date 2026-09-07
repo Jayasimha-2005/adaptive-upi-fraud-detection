@@ -1,0 +1,4 @@
+Dataset,Entity_Column,Unique_Entities,Avg_Txn_Per_Entity,Median_Txn_Per_Entity,Max_Txn_Per_Entity,Pct_Single_Txn,Timestamp_Quality,Sequence_Possible,LSTM_GRU_Suitability,Reasoning
+BAF-Base,None (no entity ID),N/A,N/A,N/A,N/A,N/A,Month only (0-7),No,Not suitable,No customer/session/device ID exists. Each row is a standalone application. Cannot form sequences. Month granularity too coarse.
+PaySim,nameOrig (customer),~6.35M unique,~1.00,1.0,2,99.99%,Hourly step (good),Theoretically yes but practically no,Weak,99.99% of customers have exactly 1 transaction. Cannot build meaningful LSTM sequences from single-transaction customers. The step column provides good temporal ordering but entity history is absent.
+CreditCard10K,None (transaction_id only),N/A,N/A,N/A,N/A,N/A,Hour only (no date),No,Not suitable,"transaction_id is sequential integer, not a user identifier. No user linking possible. Hour-only timestamp with no date cannot support temporal sequences."

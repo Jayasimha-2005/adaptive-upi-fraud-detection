@@ -1,0 +1,40 @@
+{
+  "train": {
+    "name": "train",
+    "rows": 434176,
+    "fraud": 15252,
+    "legit": 418924,
+    "fraud_pct": 3.5129,
+    "dt_min": 86400.0,
+    "dt_max": 10972793.0,
+    "day_min": 1.0,
+    "day_max": 127.0
+  },
+  "validation": {
+    "name": "validation",
+    "rows": 77822,
+    "fraud": 2637,
+    "legit": 75185,
+    "fraud_pct": 3.3885,
+    "dt_min": 10972801.0,
+    "dt_max": 13391998.0,
+    "day_min": 127.0,
+    "day_max": 155.0
+  },
+  "test": {
+    "name": "test",
+    "rows": 78542,
+    "fraud": 2774,
+    "legit": 75768,
+    "fraud_pct": 3.5319,
+    "dt_min": 13392056.0,
+    "dt_max": 15811131.0,
+    "day_min": 155.0,
+    "day_max": 183.0
+  },
+  "train_dt_max_sec": 10972800,
+  "val_dt_max_sec": 13392000,
+  "id_overlap_train_val": 0,
+  "id_overlap_val_test": 0,
+  "id_overlap_train_test": 0
+}

@@ -1,0 +1,6 @@
+file,path,size_mb,rows,exists
+train_transaction,Datasets\IEEE CIS-20260829T103704Z-1-001\IEEE CIS\train_transaction.csv,683.35,590540,True
+train_identity,Datasets\IEEE CIS-20260829T103704Z-1-001\IEEE CIS\train_identity.csv,26.53,144233,True
+test_transaction,Datasets\IEEE CIS-20260829T103704Z-1-001\IEEE CIS\test_transaction.csv,613.19,506691,True
+test_identity,Datasets\IEEE CIS-20260829T103704Z-1-001\IEEE CIS\test_identity.csv,25.8,141907,True
+sample_submission,Datasets\IEEE CIS-20260829T103704Z-1-001\IEEE CIS\sample_submission.csv,6.08,506691,True

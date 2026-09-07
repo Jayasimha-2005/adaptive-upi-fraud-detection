@@ -1,0 +1,15 @@
+{
+  "total_rows": 590540,
+  "fraud_count": 20663,
+  "legit_count": 569877,
+  "fraud_rate_pct": 3.499,
+  "class_ratio": 27.6,
+  "amt_min": 0.251,
+  "amt_max": 31937.391,
+  "amt_mean": 135.0272,
+  "amt_std": 239.1623,
+  "tx_id_min": 2987000,
+  "tx_id_max": 3577539,
+  "tx_id_unique": 590540,
+  "tx_id_duplicates": 0
+}

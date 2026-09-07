@@ -1,0 +1,5 @@
+entity_key,unique_entities,total_transactions,mean_txns,median_txns,max_txns,p90_txns,p95_txns,p99_txns,pct_single_txn,pct_2plus,pct_5plus,pct_10plus,pct_20plus,fraud_linked_entities,sequence_quality
+card1,13553,590540,43.57,4.0,14932,46.0,107.0,786.4,25.41,74.59,48.05,31.71,19.44,1740,EXCELLENT
+card1+card2,13491,590540,43.77,4.0,14891,45.0,106.0,760.1,25.42,74.58,47.96,31.64,19.17,1740,EXCELLENT
+addr1,333,590540,1773.39,3.0,65706,4500.8,8882.8,41332.0,36.94,63.06,40.24,30.93,25.83,0,EXCELLENT
+card1+addr1,37532,590540,15.73,2.0,65706,23.0,45.0,194.7,39.48,60.52,32.79,19.87,11.39,3053,GOOD

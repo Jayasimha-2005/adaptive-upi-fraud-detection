@@ -1,0 +1,179 @@
+{
+  "validation": {
+    "split": "VALIDATION",
+    "threshold": 0.616521,
+    "pr_auc": 0.584935,
+    "roc_auc": 0.923115,
+    "precision": 0.628479,
+    "recall": 0.513841,
+    "f1": 0.565408,
+    "mcc": 0.554723,
+    "balanced_accuracy": 0.751594,
+    "fpr": 0.010654,
+    "fnr": 0.486159,
+    "tp": 1355,
+    "fp": 801,
+    "tn": 74384,
+    "fn": 1282,
+    "actual_fraud": 2637,
+    "actual_legit": 75185,
+    "predicted_fraud": 2156,
+    "fraud_pct": 3.3885
+  },
+  "test": {
+    "split": "TEST",
+    "threshold": 0.616521,
+    "pr_auc": 0.531731,
+    "roc_auc": 0.898993,
+    "precision": 0.58181,
+    "recall": 0.493511,
+    "f1": 0.534035,
+    "mcc": 0.520301,
+    "balanced_accuracy": 0.740262,
+    "fpr": 0.012987,
+    "fnr": 0.506489,
+    "tp": 1369,
+    "fp": 984,
+    "tn": 74784,
+    "fn": 1405,
+    "actual_fraud": 2774,
+    "actual_legit": 75768,
+    "predicted_fraud": 2353,
+    "fraud_pct": 3.5319
+  },
+  "phase15_operational": {
+    "test": {
+      "recall_at_fpr_0.001": 0.211247,
+      "recall_at_fpr_0.005": 0.383562,
+      "recall_at_fpr_0.010": 0.461788,
+      "recall_at_fpr_0.020": 0.530642,
+      "precision_at_top_100": 0.98,
+      "precision_at_top_500": 0.908,
+      "precision_at_top_1000": 0.841,
+      "precision_at_top_5000": 0.345
+    },
+    "validation": {
+      "recall_at_fpr_0.001": 0.262799,
+      "recall_at_fpr_0.005": 0.42738,
+      "recall_at_fpr_0.010": 0.501706,
+      "recall_at_fpr_0.020": 0.587031,
+      "precision_at_top_100": 0.97,
+      "precision_at_top_500": 0.936,
+      "precision_at_top_1000": 0.864,
+      "precision_at_top_5000": 0.3594
+    },
+    "fpr_definition": "For each target FPR alpha, Recall@alpha = max{ TPR(t) : empirical_FPR(t) <= alpha } over all thresholds t.",
+    "topk_definition": "Precision@K = fraction of actual fraud in the top-K transactions ranked by descending predicted fraud probability."
+  },
+  "phase15_bootstrap": {
+    "test": {
+      "pr_auc": {
+        "mean": 0.531499,
+        "ci_lower": 0.512586,
+        "ci_upper": 0.550448,
+        "std": 0.00959,
+        "n_valid": 2000
+      },
+      "roc_auc": {
+        "mean": 0.898876,
+        "ci_lower": 0.892437,
+        "ci_upper": 0.905483,
+        "std": 0.003393,
+        "n_valid": 2000
+      },
+      "precision": {
+        "mean": 0.581331,
+        "ci_lower": 0.562393,
+        "ci_upper": 0.60059,
+        "std": 0.009691,
+        "n_valid": 2000
+      },
+      "recall": {
+        "mean": 0.493351,
+        "ci_lower": 0.475107,
+        "ci_upper": 0.512025,
+        "std": 0.009344,
+        "n_valid": 2000
+      },
+      "f1": {
+        "mean": 0.533693,
+        "ci_lower": 0.517854,
+        "ci_upper": 0.549564,
+        "std": 0.008157,
+        "n_valid": 2000
+      },
+      "mcc": {
+        "mean": 0.519968,
+        "ci_lower": 0.503852,
+        "ci_upper": 0.536364,
+        "std": 0.008297,
+        "n_valid": 2000
+      }
+    },
+    "validation": {
+      "pr_auc": {
+        "mean": 0.585089,
+        "ci_lower": 0.565527,
+        "ci_upper": 0.6048,
+        "std": 0.009918,
+        "n_valid": 2000
+      },
+      "roc_auc": {
+        "mean": 0.923082,
+        "ci_lower": 0.917173,
+        "ci_upper": 0.928906,
+        "std": 0.002973,
+        "n_valid": 2000
+      },
+      "precision": {
+        "mean": 0.628529,
+        "ci_lower": 0.608027,
+        "ci_upper": 0.649866,
+        "std": 0.010519,
+        "n_valid": 2000
+      },
+      "recall": {
+        "mean": 0.514022,
+        "ci_lower": 0.494634,
+        "ci_upper": 0.53346,
+        "std": 0.009578,
+        "n_valid": 2000
+      },
+      "f1": {
+        "mean": 0.565486,
+        "ci_lower": 0.549184,
+        "ci_upper": 0.5826,
+        "std": 0.008507,
+        "n_valid": 2000
+      },
+      "mcc": {
+        "mean": 0.554821,
+        "ci_lower": 0.538468,
+        "ci_upper": 0.572096,
+        "std": 0.008651,
+        "n_valid": 2000
+      }
+    },
+    "n_bootstrap_target": 2000,
+    "seed": 42,
+    "note": "Bootstrap samples with zero positive-class examples were skipped and re-drawn. n_valid reports the number of usable iterations."
+  },
+  "phase15_calibration": {
+    "test": {
+      "brier_score": 0.032296,
+      "ece": 0.05244,
+      "fraud_rate": 0.035319,
+      "naive_brier": 0.034071,
+      "n_bins": 10
+    },
+    "validation": {
+      "brier_score": 0.028521,
+      "ece": 0.051515,
+      "fraud_rate": 0.033885,
+      "naive_brier": 0.032737,
+      "n_bins": 10
+    },
+    "plot": "C:\\Users\\Harini\\Documents\\GitHub\\Jayasimha-github\\adaptive-upi-fraud-detection\\experiments\\E1_lightgbm\\calibration_curve_test.png",
+    "note": "Brier score lower is better; naive baseline predicts constant fraud_rate. ECE measures weighted mean gap between predicted probability and actual positive fraction."
+  }
+}

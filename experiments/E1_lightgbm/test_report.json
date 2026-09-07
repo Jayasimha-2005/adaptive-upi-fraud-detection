@@ -1,0 +1,21 @@
+{
+  "passed": 14,
+  "total": 14,
+  "errors": [],
+  "details": {
+    "no_dup_tx_id_train": true,
+    "no_dup_tx_id_val": true,
+    "no_dup_tx_id_test": true,
+    "no_overlap_train_val": true,
+    "no_overlap_val_test": true,
+    "no_overlap_train_test": true,
+    "train_before_val": true,
+    "val_before_test": true,
+    "isfr_not_in_x_train": true,
+    "tx_id_not_in_x": true,
+    "preprocessor_fitted": true,
+    "val_pred_count_matches": true,
+    "test_pred_count_matches": true,
+    "reload_same_predictions": true
+  }
+}

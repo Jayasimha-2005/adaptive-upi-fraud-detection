@@ -1,0 +1,4 @@
+Dataset,Rows,Columns,Fraud_Count,Legit_Count,Fraud_Rate_Pct,Class_Ratio,Missing_Values,Duplicate_Rows,Has_Timestamp,Has_Entity_ID,Has_Transaction_ID,Temporal_Span,Data_Type,Primary_Use
+BAF-Base,1000000,32,11029,988971,1.10,89.7:1,None,0,"Partial (month only, 0-7)",No,No,8 months (month 0-7),Synthetic (bank account fraud),Primary Training
+PaySim,6362620,11,8213,6354407,0.13,773.8:1,None,Unknown,"Yes (step = hour, 1-743)","Yes (nameOrig, nameDest)",No,743 hours (~31 days),Simulated (mobile money),Streaming/Secondary
+CreditCard10K,10000,10,151,9849,1.51,65.2:1,None,0,Partial (hour 0-23),No,Yes (transaction_id),Cannot be determined,Synthetic (credit card),Benchmark/Discard

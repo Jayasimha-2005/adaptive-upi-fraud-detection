@@ -1,0 +1,7 @@
+min_sequence_length,eligible_entities,total_sequences,fraud_linked_entities,approx_fraud_sequences,viable_for_lstm
+2,10109,576987,1594,452421,YES
+3,8419,566878,1518,450827,YES
+5,6512,551144,1407,447853,YES
+10,4298,523806,1230,441207,YES
+20,2635,489730,1003,430001,YES
+50,1254,435762,736,404193,YES

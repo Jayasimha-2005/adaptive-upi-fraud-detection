@@ -1,0 +1,50 @@
+{
+  "phase": 1,
+  "experiment": "E1_lightgbm",
+  "random_seed": 42,
+  "python_version": "3.13.13",
+  "os": "Windows",
+  "packages": {
+    "pandas": "3.0.5",
+    "numpy": "2.4.6",
+    "lightgbm": "4.7.0",
+    "scikit-learn": "1.9.0"
+  },
+  "dataset": "IEEE-CIS Fraud Detection (Vesta Corporation / Kaggle)",
+  "dataset_type": "Real-world-derived, anonymized, historical e-commerce",
+  "split_boundaries": {
+    "train_dt_max": 10972800,
+    "val_dt_max": 13392000
+  },
+  "n_features": 406,
+  "decision_threshold": 0.6165210848760408,
+  "train_metadata": {
+    "n_estimators_max": 1000,
+    "best_iteration": 1000,
+    "early_stopping_rounds": 50,
+    "best_val_average_precision": 0.584935,
+    "training_time_sec": 50.66,
+    "n_features": 406,
+    "params": {
+      "objective": "binary",
+      "metric": "average_precision",
+      "boosting_type": "gbdt",
+      "learning_rate": 0.05,
+      "num_leaves": 63,
+      "max_depth": -1,
+      "min_child_samples": 50,
+      "feature_fraction": 0.8,
+      "bagging_fraction": 0.8,
+      "bagging_freq": 5,
+      "reg_alpha": 0.1,
+      "reg_lambda": 1.0,
+      "is_unbalance": true,
+      "verbose": -1,
+      "seed": 42,
+      "num_threads": -1
+    }
+  },
+  "validation_pr_auc": 0.584935,
+  "test_pr_auc": 0.531731,
+  "total_runtime_sec": 170.57
+}
