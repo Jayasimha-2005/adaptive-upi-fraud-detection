@@ -1,0 +1,56 @@
+{
+  "variant": "E2b_scaled",
+  "step": "STEP 8 E2b - Scaled GRU Training",
+  "seed": 42,
+  "device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 5050 Laptop GPU",
+  "torch_version": "2.13.0.dev20260603+cu132",
+  "cuda_version": "13.2",
+  "preprocessing": "StandardScaler (fit on train X only)",
+  "architecture": {
+    "input_size": 406,
+    "hidden_size": 64,
+    "num_layers": 1,
+    "dropout": 0.2,
+    "seq_len": 4
+  },
+  "training": {
+    "optimizer": "adam",
+    "learning_rate": 0.001,
+    "batch_size": 128,
+    "max_epochs": 30,
+    "early_stop_patience": 5,
+    "monitor": "val_pr_auc",
+    "loss": "BCEWithLogitsLoss",
+    "pos_weight": 27.47
+  },
+  "dataset": {
+    "train": {
+      "n": 398312,
+      "n_fraud": 14397
+    },
+    "validation": {
+      "n": 75727,
+      "n_fraud": 2567
+    },
+    "test": {
+      "n": 76520,
+      "n_fraud": 2700
+    }
+  },
+  "n_excluded_dup_dt": 585,
+  "e2a_reference": {
+    "best_val_pr_auc": 0.0345,
+    "epochs_completed": 6,
+    "preprocessing": "none (unscaled)"
+  },
+  "results": {
+    "best_epoch": 2,
+    "best_val_pr_auc": 0.13772456722737877,
+    "epochs_completed": 7,
+    "early_stopped": true,
+    "total_time_s": 78.7
+  },
+  "test_evaluated": false,
+  "e1_modified": false
+}

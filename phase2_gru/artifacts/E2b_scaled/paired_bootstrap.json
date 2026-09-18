@@ -1,0 +1,26 @@
+{
+  "n_resamples_target": 2000,
+  "seed": 42,
+  "common_population": 76520,
+  "primary_metric": "PR-AUC",
+  "convention": "Delta = PR-AUC(E2b) - PR-AUC(E1)",
+  "paired_bootstrap_pr_auc": {
+    "n_valid": 2000,
+    "observed_delta": -0.35844111579317517,
+    "mean_delta": -0.3578180571631271,
+    "std_delta": 0.00908549719237433,
+    "ci_lower_95": -0.3755715265624933,
+    "ci_upper_95": -0.33947341452665314,
+    "ci_excludes_zero": true
+  },
+  "paired_bootstrap_roc_auc": {
+    "n_valid": 2000,
+    "observed_delta": -0.1559256926257061,
+    "mean_delta": -0.15586701403404163,
+    "std_delta": 0.00584366994513757,
+    "ci_lower_95": -0.16715940175849875,
+    "ci_upper_95": -0.14454939181321735,
+    "ci_excludes_zero": true
+  },
+  "interpretation_note": "CI excludes zero means the paired bootstrap consistently finds one model superior on this metric across resamples. This does not establish causality."
+}

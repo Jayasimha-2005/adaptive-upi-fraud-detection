@@ -1,0 +1,30 @@
+{
+  "results": {
+    "train": {
+      "rows": 434176,
+      "fraud": 15252,
+      "legit": 418924,
+      "cols": 409,
+      "dt_min": 86400.0,
+      "dt_max": 10972793.0
+    },
+    "validation": {
+      "rows": 77822,
+      "fraud": 2637,
+      "legit": 75185,
+      "cols": 409,
+      "dt_min": 10972801.0,
+      "dt_max": 13391998.0
+    },
+    "test": {
+      "rows": 78542,
+      "fraud": 2774,
+      "legit": 75768,
+      "cols": 409,
+      "dt_min": 13392056.0,
+      "dt_max": 15811131.0
+    }
+  },
+  "discrepancies": [],
+  "status": "PASS"
+}

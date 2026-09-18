@@ -1,0 +1,56 @@
+{
+  "option": "A_strict_dt_ordering",
+  "elapsed_sec": 1047.4,
+  "feature_count": 406,
+  "n_excluded_dup_dt": 585,
+  "splits": {
+    "train": {
+      "retained": 398312,
+      "fraud": 14397,
+      "legit": 383915,
+      "fraud_pct": 3.6145,
+      "unique_cards": 5640,
+      "X_shape": [
+        398312,
+        4,
+        406
+      ],
+      "has_nan": false,
+      "has_inf": false
+    },
+    "validation": {
+      "retained": 75727,
+      "fraud": 2567,
+      "legit": 73160,
+      "fraud_pct": 3.3898,
+      "unique_cards": 4538,
+      "X_shape": [
+        75727,
+        4,
+        406
+      ],
+      "has_nan": false,
+      "has_inf": false
+    },
+    "test": {
+      "retained": 76520,
+      "fraud": 2700,
+      "legit": 73820,
+      "fraud_pct": 3.5285,
+      "unique_cards": 4737,
+      "X_shape": [
+        76520,
+        4,
+        406
+      ],
+      "has_nan": false,
+      "has_inf": false
+    }
+  },
+  "e2_test_coverage": {
+    "e1_test_tids": 78542,
+    "e2_eligible_tids": 76520,
+    "e1_only_tids": 2022,
+    "coverage_pct": 97.4256
+  }
+}

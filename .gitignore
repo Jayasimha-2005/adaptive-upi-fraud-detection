@@ -48,10 +48,16 @@ Thumbs.db
 .idea/
 .vscode/settings.json
 
-# ── Logs and temp ────────────────────────────────────────────────────────────
-*.log
+# ── Logs and temp ────────────────────────────────────────────────────────
 *.tmp
 *.temp
+experiments/E2_gru/*.log
+
+# ── PDF exports (generated from markdown — not version controlled) ─────────
+reports/*.pdf
+
+# ── E3 (Phase 3 — not yet ready for commit) ──────────────────────────────
+experiments/E3_hybrid/
 
 # ── Secrets / credentials ────────────────────────────────────────────────────
 .env

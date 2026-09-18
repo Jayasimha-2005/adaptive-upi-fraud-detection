@@ -1,0 +1,270 @@
+2026-08-29 18:06:46 | INFO     | __main__ | =================================================================
+2026-08-29 18:06:46 | INFO     | __main__ |   PHASE 1 — IEEE-CIS LightGBM Baseline (E1)
+2026-08-29 18:06:46 | INFO     | __main__ | =================================================================
+2026-08-29 18:06:46 | INFO     | __main__ | Config: configs\phase1_lightgbm.yaml
+2026-08-29 18:06:46 | INFO     | __main__ | Random seed: 42
+2026-08-29 18:06:46 | INFO     | __main__ | Python: 3.13.13
+2026-08-29 18:06:46 | INFO     | __main__ | 
+--- STEP 1: Data Validation ---
+2026-08-29 18:07:04 | INFO     | __main__ | Validation passed. Fraud rate: 3.499%
+2026-08-29 18:07:04 | INFO     | __main__ | 
+--- STEP 2: Load and Join ---
+2026-08-29 18:07:32 | INFO     | __main__ | Joined dataframe: 590540 rows x 434 cols
+2026-08-29 18:07:33 | INFO     | __main__ | Feature inventory saved: 434 columns documented
+2026-08-29 18:07:33 | INFO     | __main__ | 
+--- STEP 3: Chronological Split ---
+2026-08-29 18:07:42 | INFO     | __main__ | 
+--- STEP 4: Preprocessing (fit on TRAIN only) ---
+2026-08-29 18:07:52 | INFO     | __main__ | Transforming splits ...
+2026-08-29 18:08:22 | INFO     | __main__ | Leakage audit saved: 58 columns reviewed
+2026-08-29 18:08:22 | INFO     | __main__ | Feature matrix: train=(434176, 406) | val=(77822, 406) | test=(78542, 406)
+2026-08-29 18:08:22 | INFO     | __main__ | Leakage assertions passed.
+2026-08-29 18:08:22 | INFO     | __main__ | 
+--- STEP 5: Save Processed Data ---
+2026-08-29 18:08:45 | INFO     | __main__ | Saved train.parquet: 434176 rows, 409 cols
+2026-08-29 18:08:48 | INFO     | __main__ | Saved validation.parquet: 77822 rows, 409 cols
+2026-08-29 18:08:51 | INFO     | __main__ | Saved test.parquet: 78542 rows, 409 cols
+2026-08-29 18:08:51 | INFO     | __main__ | Processed Parquet files saved to: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\datasets\processed\ieee_cis
+2026-08-29 18:08:51 | INFO     | __main__ | 
+--- STEP 6: Train LightGBM Baseline ---
+2026-08-29 18:12:03 | INFO     | __main__ | =================================================================
+2026-08-29 18:12:03 | INFO     | __main__ |   PHASE 1 — IEEE-CIS LightGBM Baseline (E1)
+2026-08-29 18:12:03 | INFO     | __main__ | =================================================================
+2026-08-29 18:12:03 | INFO     | __main__ | Config: configs\phase1_lightgbm.yaml
+2026-08-29 18:12:03 | INFO     | __main__ | Random seed: 42
+2026-08-29 18:12:03 | INFO     | __main__ | Python: 3.13.13
+2026-08-29 18:12:03 | INFO     | __main__ | 
+--- STEP 1: Data Validation ---
+2026-08-29 18:12:42 | INFO     | __main__ | Validation passed. Fraud rate: 3.499%
+2026-08-29 18:12:42 | INFO     | __main__ | 
+--- STEP 2: Load and Join ---
+2026-08-29 18:13:23 | INFO     | __main__ | Joined dataframe: 590540 rows x 434 cols
+2026-08-29 18:13:23 | INFO     | __main__ | Feature inventory saved: 434 columns documented
+2026-08-29 18:13:23 | INFO     | __main__ | 
+--- STEP 3: Chronological Split ---
+2026-08-29 18:13:26 | INFO     | __main__ | 
+--- STEP 4: Preprocessing (fit on TRAIN only) ---
+2026-08-29 18:13:29 | INFO     | __main__ | Transforming splits ...
+2026-08-29 18:13:55 | INFO     | __main__ | Leakage audit saved: 58 columns reviewed
+2026-08-29 18:13:55 | INFO     | __main__ | Feature matrix: train=(434176, 406) | val=(77822, 406) | test=(78542, 406)
+2026-08-29 18:13:55 | INFO     | __main__ | Leakage assertions passed.
+2026-08-29 18:13:55 | INFO     | __main__ | 
+--- STEP 5: Save Processed Data ---
+2026-08-29 18:14:08 | INFO     | __main__ | Saved train.parquet: 434176 rows, 409 cols
+2026-08-29 18:14:10 | INFO     | __main__ | Saved validation.parquet: 77822 rows, 409 cols
+2026-08-29 18:14:13 | INFO     | __main__ | Saved test.parquet: 78542 rows, 409 cols
+2026-08-29 18:14:13 | INFO     | __main__ | Processed Parquet files saved to: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\datasets\processed\ieee_cis
+2026-08-29 18:14:13 | INFO     | __main__ | 
+--- STEP 6: Train LightGBM Baseline ---
+2026-08-29 18:16:42 | INFO     | __main__ | Top feature (gain): V258
+2026-08-29 18:16:42 | INFO     | __main__ | 
+--- STEP 7: Threshold Selection (validation only) ---
+2026-09-01 13:52:56 | INFO     | __main__ | =================================================================
+2026-09-01 13:52:56 | INFO     | __main__ |   PHASE 1 — IEEE-CIS LightGBM Baseline (E1)
+2026-09-01 13:52:56 | INFO     | __main__ | =================================================================
+2026-09-01 13:52:56 | INFO     | __main__ | Config: configs\phase1_lightgbm.yaml
+2026-09-01 13:52:56 | INFO     | __main__ | Random seed: 42
+2026-09-01 13:52:56 | INFO     | __main__ | Python: 3.13.13
+2026-09-01 13:52:56 | INFO     | __main__ | 
+--- STEP 1: Data Validation ---
+2026-09-01 13:53:24 | INFO     | __main__ | Validation passed. Fraud rate: 3.499%
+2026-09-01 13:53:24 | INFO     | __main__ | 
+--- STEP 2: Load and Join ---
+2026-09-01 13:53:49 | INFO     | __main__ | Joined dataframe: 590540 rows x 434 cols
+2026-09-01 13:53:49 | INFO     | __main__ | Feature inventory saved: 434 columns documented
+2026-09-01 13:53:49 | INFO     | __main__ | 
+--- STEP 3: Chronological Split ---
+2026-09-01 13:53:54 | INFO     | __main__ | 
+--- STEP 4: Preprocessing (fit on TRAIN only) ---
+2026-09-01 13:53:59 | INFO     | __main__ | Transforming splits ...
+2026-09-01 13:54:13 | INFO     | __main__ | Leakage audit saved: 58 columns reviewed
+2026-09-01 13:54:13 | INFO     | __main__ | Feature matrix: train=(434176, 406) | val=(77822, 406) | test=(78542, 406)
+2026-09-01 13:54:13 | INFO     | __main__ | Leakage assertions passed.
+2026-09-01 13:54:13 | INFO     | __main__ | 
+--- STEP 5: Save Processed Data ---
+2026-09-01 13:54:28 | INFO     | __main__ | Saved train.parquet: 434176 rows, 409 cols
+2026-09-01 13:54:29 | INFO     | __main__ | Saved validation.parquet: 77822 rows, 409 cols
+2026-09-01 13:54:30 | INFO     | __main__ | Saved test.parquet: 78542 rows, 409 cols
+2026-09-01 13:54:30 | INFO     | __main__ | Processed Parquet files saved to: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\datasets\processed\ieee_cis
+2026-09-01 13:54:30 | INFO     | __main__ | 
+--- STEP 6: Train LightGBM Baseline ---
+2026-09-01 13:55:23 | INFO     | __main__ | Top feature (gain): V258
+2026-09-01 13:55:23 | INFO     | __main__ | 
+--- STEP 7: Threshold Selection (validation only) ---
+2026-09-01 13:55:24 | INFO     | __main__ | Decision threshold frozen at: 0.616521
+2026-09-01 13:55:24 | INFO     | __main__ | 
+--- STEP 8: Validation Metrics ---
+2026-09-01 13:55:25 | INFO     | __main__ | 
+--- STEP 9: Test Evaluation (ONCE — threshold frozen) ---
+2026-09-01 13:55:28 | INFO     | __main__ | 
+--- STEP 10: Save Metrics and Predictions ---
+2026-09-01 13:55:32 | INFO     | __main__ | Predictions saved.
+2026-09-01 13:55:32 | INFO     | __main__ | 
+--- STEP 11: SHAP Analysis ---
+2026-09-01 13:55:44 | WARNING  | __main__ | SHAP analysis failed: Could not find/load shared object file 'llvmlite.dll' from resource location: 'llvmlite.binding'. This could mean that the library literally cannot be found, but may also mean that the permissions are incorrect or that a dependency of/a symbol in the library could not be resolved. — deferring to later phase.
+2026-09-01 13:55:44 | INFO     | __main__ | 
+--- STEP 12: Integrity Tests ---
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] no_dup_tx_id_train
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] no_dup_tx_id_val
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] no_dup_tx_id_test
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] no_overlap_train_val
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] no_overlap_val_test
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] no_overlap_train_test
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] train_before_val
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] val_before_test
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] isfr_not_in_x_train
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] tx_id_not_in_x
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] preprocessor_fitted
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] val_pred_count_matches
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] test_pred_count_matches
+2026-09-01 13:55:48 | INFO     | __main__ |   [PASS] reload_same_predictions
+2026-09-01 13:56:19 | INFO     | __main__ | =================================================================
+2026-09-01 13:56:19 | INFO     | __main__ |   PHASE 1 — IEEE-CIS LightGBM Baseline (E1)
+2026-09-01 13:56:19 | INFO     | __main__ | =================================================================
+2026-09-01 13:56:19 | INFO     | __main__ | Config: configs\phase1_lightgbm.yaml
+2026-09-01 13:56:19 | INFO     | __main__ | Random seed: 42
+2026-09-01 13:56:19 | INFO     | __main__ | Python: 3.13.13
+2026-09-01 13:56:19 | INFO     | __main__ | 
+--- STEP 1: Data Validation ---
+2026-09-01 13:56:46 | INFO     | __main__ | Validation passed. Fraud rate: 3.499%
+2026-09-01 13:56:46 | INFO     | __main__ | 
+--- STEP 2: Load and Join ---
+2026-09-01 13:57:12 | INFO     | __main__ | Joined dataframe: 590540 rows x 434 cols
+2026-09-01 13:57:12 | INFO     | __main__ | Feature inventory saved: 434 columns documented
+2026-09-01 13:57:12 | INFO     | __main__ | 
+--- STEP 3: Chronological Split ---
+2026-09-01 13:57:16 | INFO     | __main__ | 
+--- STEP 4: Preprocessing (fit on TRAIN only) ---
+2026-09-01 13:57:20 | INFO     | __main__ | Transforming splits ...
+2026-09-01 13:57:33 | INFO     | __main__ | Leakage audit saved: 58 columns reviewed
+2026-09-01 13:57:33 | INFO     | __main__ | Feature matrix: train=(434176, 406) | val=(77822, 406) | test=(78542, 406)
+2026-09-01 13:57:33 | INFO     | __main__ | Leakage assertions passed.
+2026-09-01 13:57:33 | INFO     | __main__ | 
+--- STEP 5: Save Processed Data ---
+2026-09-01 13:57:39 | INFO     | __main__ | Saved train.parquet: 434176 rows, 409 cols
+2026-09-01 13:57:40 | INFO     | __main__ | Saved validation.parquet: 77822 rows, 409 cols
+2026-09-01 13:57:41 | INFO     | __main__ | Saved test.parquet: 78542 rows, 409 cols
+2026-09-01 13:57:41 | INFO     | __main__ | Processed Parquet files saved to: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\datasets\processed\ieee_cis
+2026-09-01 13:57:41 | INFO     | __main__ | 
+--- STEP 6: Train LightGBM Baseline ---
+2026-09-01 13:58:28 | INFO     | __main__ | Top feature (gain): V258
+2026-09-01 13:58:28 | INFO     | __main__ | 
+--- STEP 7: Threshold Selection (validation only) ---
+2026-09-01 13:58:29 | INFO     | __main__ | Decision threshold frozen at: 0.616521
+2026-09-01 13:58:29 | INFO     | __main__ | 
+--- STEP 8: Validation Metrics ---
+2026-09-01 13:58:30 | INFO     | __main__ | 
+--- STEP 9: Test Evaluation (ONCE — threshold frozen) ---
+2026-09-01 13:58:32 | INFO     | __main__ | 
+--- STEP 10: Save Metrics and Predictions ---
+2026-09-01 13:58:50 | INFO     | __main__ | Predictions saved.
+2026-09-01 13:58:50 | INFO     | __main__ | 
+--- STEP 11: SHAP Analysis ---
+2026-09-01 13:59:43 | INFO     | __main__ | Computing SHAP values on 5000 validation samples ...
+2026-09-01 14:00:02 | INFO     | __main__ | SHAP computed in 19.4s
+2026-09-01 14:00:04 | INFO     | __main__ | SHAP summary plot saved.
+2026-09-01 14:00:04 | INFO     | __main__ | 
+--- STEP 12: Integrity Tests ---
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] no_dup_tx_id_train
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] no_dup_tx_id_val
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] no_dup_tx_id_test
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] no_overlap_train_val
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] no_overlap_val_test
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] no_overlap_train_test
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] train_before_val
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] val_before_test
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] isfr_not_in_x_train
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] tx_id_not_in_x
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] preprocessor_fitted
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] val_pred_count_matches
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] test_pred_count_matches
+2026-09-01 14:00:08 | INFO     | __main__ |   [PASS] reload_same_predictions
+2026-09-01 14:00:08 | INFO     | __main__ | All 14 integrity tests PASSED.
+2026-09-01 14:00:08 | INFO     | __main__ | Run metadata saved.
+2026-09-01 14:00:08 | INFO     | __main__ | 
+--- STEP 14: Final Reports ---
+2026-09-01 14:00:08 | INFO     | __main__ | Baseline report written: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\reports\phase1\lightgbm_baseline_report.md
+2026-09-01 14:00:08 | INFO     | __main__ | =================================================================
+2026-09-01 14:00:08 | INFO     | __main__ |   PHASE 1 COMPLETE in 229.0s
+2026-09-01 14:00:08 | INFO     | __main__ |   Validation PR-AUC: 0.5849
+2026-09-01 14:00:08 | INFO     | __main__ |   Test       PR-AUC: 0.5317
+2026-09-01 14:00:08 | INFO     | __main__ |   Artifacts: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\experiments\E1_lightgbm
+2026-09-01 14:00:08 | INFO     | __main__ |   Reports:   C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\reports\phase1
+2026-09-01 14:00:08 | INFO     | __main__ | =================================================================
+2026-09-01 14:00:08 | INFO     | __main__ | 
+STOP — Phase 1 complete. Await Phase 2 instructions.
+2026-09-02 13:47:32 | INFO     | __main__ | =================================================================
+2026-09-02 13:47:32 | INFO     | __main__ |   PHASE 1 — IEEE-CIS LightGBM Baseline (E1)
+2026-09-02 13:47:32 | INFO     | __main__ | =================================================================
+2026-09-02 13:47:32 | INFO     | __main__ | Config: configs\phase1_lightgbm.yaml
+2026-09-02 13:47:32 | INFO     | __main__ | Random seed: 42
+2026-09-02 13:47:32 | INFO     | __main__ | Python: 3.13.13
+2026-09-02 13:47:32 | INFO     | __main__ | 
+--- STEP 1: Data Validation ---
+2026-09-02 13:48:00 | INFO     | __main__ | Validation passed. Fraud rate: 3.499%
+2026-09-02 13:48:00 | INFO     | __main__ | 
+--- STEP 2: Load and Join ---
+2026-09-02 13:48:28 | INFO     | __main__ | Joined dataframe: 590540 rows x 434 cols
+2026-09-02 13:48:28 | INFO     | __main__ | Feature inventory saved: 434 columns documented
+2026-09-02 13:48:28 | INFO     | __main__ | 
+--- STEP 3: Chronological Split ---
+2026-09-02 13:48:33 | INFO     | __main__ | 
+--- STEP 4: Preprocessing (fit on TRAIN only) ---
+2026-09-02 13:48:37 | INFO     | __main__ | Transforming splits ...
+2026-09-02 13:48:51 | INFO     | __main__ | Leakage audit saved: 58 columns reviewed
+2026-09-02 13:48:51 | INFO     | __main__ | Feature matrix: train=(434176, 406) | val=(77822, 406) | test=(78542, 406)
+2026-09-02 13:48:51 | INFO     | __main__ | Leakage assertions passed.
+2026-09-02 13:48:51 | INFO     | __main__ | 
+--- STEP 5: Save Processed Data ---
+2026-09-02 13:48:58 | INFO     | __main__ | Saved train.parquet: 434176 rows, 409 cols
+2026-09-02 13:48:59 | INFO     | __main__ | Saved validation.parquet: 77822 rows, 409 cols
+2026-09-02 13:49:00 | INFO     | __main__ | Saved test.parquet: 78542 rows, 409 cols
+2026-09-02 13:49:00 | INFO     | __main__ | Processed Parquet files saved to: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\datasets\processed\ieee_cis
+2026-09-02 13:49:00 | INFO     | __main__ | 
+--- STEP 6: Train LightGBM Baseline ---
+2026-09-02 13:49:52 | INFO     | __main__ | Top feature (gain): V258
+2026-09-02 13:49:52 | INFO     | __main__ | 
+--- STEP 7: Threshold Selection (validation only) ---
+2026-09-02 13:49:53 | INFO     | __main__ | Decision threshold frozen at: 0.616521
+2026-09-02 13:49:53 | INFO     | __main__ | 
+--- STEP 8: Validation Metrics ---
+2026-09-02 13:49:54 | INFO     | __main__ | 
+--- STEP 9: Test Evaluation (ONCE — threshold frozen) ---
+2026-09-02 13:49:56 | INFO     | __main__ | 
+--- STEP 10: Save Metrics and Predictions ---
+2026-09-02 13:49:56 | INFO     | __main__ | Predictions saved.
+2026-09-02 13:49:56 | INFO     | __main__ | 
+--- STEP 11: SHAP Analysis ---
+2026-09-02 13:49:57 | INFO     | __main__ | Computing SHAP values on 5000 validation samples ...
+2026-09-02 13:50:17 | INFO     | __main__ | SHAP computed in 19.7s
+2026-09-02 13:50:19 | INFO     | __main__ | SHAP summary plot saved.
+2026-09-02 13:50:19 | INFO     | __main__ | 
+--- STEP 12: Integrity Tests ---
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] no_dup_tx_id_train
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] no_dup_tx_id_val
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] no_dup_tx_id_test
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] no_overlap_train_val
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] no_overlap_val_test
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] no_overlap_train_test
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] train_before_val
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] val_before_test
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] isfr_not_in_x_train
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] tx_id_not_in_x
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] preprocessor_fitted
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] val_pred_count_matches
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] test_pred_count_matches
+2026-09-02 13:50:23 | INFO     | __main__ |   [PASS] reload_same_predictions
+2026-09-02 13:50:23 | INFO     | __main__ | All 14 integrity tests PASSED.
+2026-09-02 13:50:23 | INFO     | __main__ | Run metadata saved.
+2026-09-02 13:50:23 | INFO     | __main__ | 
+--- STEP 14: Final Reports ---
+2026-09-02 13:50:23 | INFO     | __main__ | Baseline report written: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\reports\phase1\lightgbm_baseline_report.md
+2026-09-02 13:50:23 | INFO     | __main__ | =================================================================
+2026-09-02 13:50:23 | INFO     | __main__ |   PHASE 1 COMPLETE in 170.6s
+2026-09-02 13:50:23 | INFO     | __main__ |   Validation PR-AUC: 0.5849
+2026-09-02 13:50:23 | INFO     | __main__ |   Test       PR-AUC: 0.5317
+2026-09-02 13:50:23 | INFO     | __main__ |   Artifacts: C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\experiments\E1_lightgbm
+2026-09-02 13:50:23 | INFO     | __main__ |   Reports:   C:\Users\Harini\Documents\GitHub\Jayasimha-github\adaptive-upi-fraud-detection\reports\phase1
+2026-09-02 13:50:23 | INFO     | __main__ | =================================================================
+2026-09-02 13:50:23 | INFO     | __main__ | 
+STOP — Phase 1 complete. Await Phase 2 instructions.

@@ -1,0 +1,360 @@
+{
+  "manifest_version": "1.0",
+  "freeze_timestamp": "2026-09-18T11:17:13.665544Z",
+  "phase": "Phase 2 \u2014 Temporal Modeling",
+  "phase_status": "FROZEN",
+  "dataset": "IEEE-CIS Transaction Fraud",
+  "step10_audit_result": "PASS",
+  "known_warnings": [
+    {
+      "id": "W1",
+      "location": "phase2_gru/src/evaluation/run_step9.py \u2014 f1_max_threshold()",
+      "warning": "RuntimeWarning: invalid value encountered in divide",
+      "cause": "sklearn precision_recall_curve may produce 0/0 at extreme thresholds, resulting in NaN F1 which numpy handles as zero. The selected threshold and F1 value are unaffected.",
+      "action": "NOT corrected \u2014 experiment is frozen. Documented as minor implementation note.",
+      "effect_on_results": "None. The threshold 0.810221 and the final test metrics are correct."
+    },
+    {
+      "id": "W2",
+      "location": "phase2_gru/artifacts/E2b_scaled/run_metadata.json",
+      "warning": "SMOTE and random_oversample fields stored as null instead of false",
+      "cause": "JSON serialization of Python None vs False when keys were absent from training config",
+      "action": "NOT corrected \u2014 experiment is frozen. Behavioral meaning is identical: no oversampling.",
+      "effect_on_results": "None."
+    }
+  ],
+  "sequence_specification": {
+    "version": "1.1",
+    "file": "phase2_gru/reports/sequence_specification.md",
+    "entity_key": "card1",
+    "min_entity_transactions": 5,
+    "window_length": 5,
+    "history_steps": 4,
+    "target_step": "T5",
+    "stride": 1,
+    "temporal_ordering": "strictly ascending TransactionDT (Option A)",
+    "duplicate_dt_treatment": "exclude windows where DT(T4)==DT(T5)",
+    "windows_excluded_duplicate_dt": 585,
+    "split_assignment": "by target transaction split",
+    "cross_split_history": "allowed (prior splits only)",
+    "gap_feature": "log1p(T5_DT - T4_DT), index 405",
+    "target_gap_used_as_feature": false,
+    "card1_in_gru_input": false,
+    "isfraud_in_x": false,
+    "gru_input_shape": [
+      null,
+      4,
+      406
+    ]
+  },
+  "dataset_counts": {
+    "total_transactions": 590540,
+    "total_entities_card1": 13553,
+    "entities_with_retained_windows": 6511,
+    "excluded_duplicate_dt_windows": 585,
+    "train_sequences": 398312,
+    "val_sequences": 75727,
+    "test_sequences": 76520,
+    "train_fraud": 14397,
+    "val_fraud": 2567,
+    "test_fraud": 2700
+  },
+  "e1_reference": {
+    "description": "Frozen LightGBM tabular baseline",
+    "experiment_dir": "experiments/E1_lightgbm/",
+    "full_test_population": 78542,
+    "metrics_full_test": {
+      "pr_auc": 0.531731,
+      "roc_auc": 0.898993,
+      "precision": 0.58181,
+      "recall": 0.493511,
+      "f1": 0.534035,
+      "mcc": 0.520301,
+      "balanced_accuracy": 0.740262,
+      "fpr": 0.012987,
+      "fnr": 0.506489
+    },
+    "threshold_frozen": 0.616521,
+    "phase15_bootstrap_pr_auc_ci": [
+      0.512586,
+      0.550448
+    ],
+    "artifacts": {
+      "model": {
+        "path": "experiments/E1_lightgbm/model.txt",
+        "exists": true,
+        "size_bytes": 6966538,
+        "sha256": "ac93b59a7eee7a23b1d77a7fa03d348153328da128a1ba66d6f34cf490ec6d96"
+      },
+      "preprocessing": {
+        "path": "experiments/E1_lightgbm/preprocessing.joblib",
+        "exists": true,
+        "size_bytes": 61074,
+        "sha256": "0c336989206214cab202d3b4a8a726206cb4ca69a0908e52fdb6f9cf479fbf69"
+      },
+      "predictions": {
+        "path": "experiments/E1_lightgbm/predictions.parquet",
+        "exists": true,
+        "size_bytes": 3347823,
+        "sha256": "6a73279d814914379abe2ea2bc50d95b9ebdb3343e79e018450a1e11f9d3e7f8"
+      },
+      "metrics": {
+        "path": "experiments/E1_lightgbm/metrics.json",
+        "exists": true,
+        "size_bytes": 4934,
+        "sha256": "6f3ab9c86f9b9f47708432ac3a17efa67502cf28e1e273b681e708001c28cf2c"
+      },
+      "feature_names": {
+        "path": "experiments/E1_lightgbm/feature_names.json",
+        "exists": true,
+        "size_bytes": 5502,
+        "sha256": "1c59105a626f57533af4fc56f3ba10ae112b739c16c2e2d99cec24c1b1d0330d"
+      }
+    },
+    "immutability_status": "VERIFIED \u2014 SHA256 matches STEP9 audit record"
+  },
+  "e2a_reference": {
+    "description": "E2a \u2014 Unscaled GRU (control variant)",
+    "artifact_dir": "phase2_gru/artifacts/E2a_unscaled/",
+    "preprocessing": "none (unscaled raw E1 features)",
+    "best_epoch": 1,
+    "best_val_pr_auc": 0.03451,
+    "val_fraud_prevalence": 0.0339,
+    "interpretation": "Near-random validation performance (val PR-AUC \u2248 fraud prevalence)",
+    "test_evaluated": false,
+    "artifacts": {
+      "checkpoint": {
+        "path": "phase2_gru/artifacts/E2a_unscaled/model/gru_best.pt",
+        "exists": true,
+        "size_bytes": 1095871,
+        "sha256": "6fe11e64fdca822d876f108ccd30111f3add39bb01517304a2971a449a7e6029"
+      },
+      "training_history": {
+        "path": "phase2_gru/artifacts/E2a_unscaled/training_history.csv",
+        "exists": true,
+        "size_bytes": 264,
+        "sha256": "0c87288a4789a0293d4ceb5eee92419918a41504371baabe62689e844764ffa9"
+      },
+      "run_metadata": {
+        "path": "phase2_gru/artifacts/E2a_unscaled/run_metadata.json",
+        "exists": true,
+        "size_bytes": 1040,
+        "sha256": "6051671248b5e98c9e5ef5a8d8ef79fd3a31fc402b2c5af64d290ec13261f484"
+      }
+    }
+  },
+  "e2b_reference": {
+    "description": "E2b \u2014 Scaled GRU (primary E2 variant for test evaluation)",
+    "artifact_dir": "phase2_gru/artifacts/E2b_scaled/",
+    "preprocessing": "StandardScaler fitted on training sequences only (398,312 \u00d7 4 = 1,593,248 obs)",
+    "architecture": {
+      "input_size": 406,
+      "hidden_size": 64,
+      "num_layers": 1,
+      "dropout": 0.2,
+      "seq_len": 4,
+      "output": "Linear(64\u21921) logits",
+      "trainable_parameters": 90689
+    },
+    "training": {
+      "seed": 42,
+      "optimizer": "Adam",
+      "learning_rate": 0.001,
+      "batch_size": 128,
+      "max_epochs": 30,
+      "patience": 5,
+      "loss": "BCEWithLogitsLoss",
+      "pos_weight": 27.47,
+      "monitor": "validation PR-AUC"
+    },
+    "best_epoch": 2,
+    "best_val_pr_auc": 0.1377,
+    "epochs_completed": 7,
+    "early_stopped": true,
+    "training_time_seconds": 78.7,
+    "device": "NVIDIA GeForce RTX 5050 Laptop GPU (CUDA 13.2)",
+    "threshold": {
+      "value": 0.810221,
+      "selection_method": "F1-max on validation set",
+      "test_labels_used_for_selection": false
+    },
+    "artifacts": {
+      "checkpoint_epoch2": {
+        "path": "phase2_gru/artifacts/E2b_scaled/model/gru_best.pt",
+        "exists": true,
+        "size_bytes": 1095871,
+        "sha256": "31b17bb46d2c92572af3bece36cf2854b85404b15446b9bd5dc8a449404bb3ea"
+      },
+      "scaler": {
+        "path": "phase2_gru/artifacts/E2b_scaled/preprocessing/standard_scaler.pkl",
+        "exists": true,
+        "size_bytes": 3551,
+        "sha256": "fe294184277da80f5539f3021501f6236434c657d74596e0ffd0e75af514471b"
+      },
+      "training_history": {
+        "path": "phase2_gru/artifacts/E2b_scaled/training_history.csv",
+        "exists": true,
+        "size_bytes": 301,
+        "sha256": "7d048026a911c768355cb8c18fe9cd70c7285cf4bae9b93d4c74a550c69d1121"
+      },
+      "run_metadata": {
+        "path": "phase2_gru/artifacts/E2b_scaled/run_metadata.json",
+        "exists": true,
+        "size_bytes": 1289,
+        "sha256": "f6aa3b29a64d496e87ecec581f4669fac45b3834010b017682a9ff9cc46879c3"
+      },
+      "test_predictions": {
+        "path": "phase2_gru/artifacts/E2b_scaled/test_predictions.parquet",
+        "exists": true,
+        "size_bytes": 1698078,
+        "sha256": "6ce4f41774a8dab380450e95b79a780872f230eed0ee7b65b59c2022f0a99e66"
+      },
+      "test_metrics": {
+        "path": "phase2_gru/artifacts/E2b_scaled/test_metrics.json",
+        "exists": true,
+        "size_bytes": 2434,
+        "sha256": "89f8340eef644d892ea286701d92b85044f95b037d98b336d4c6838215d62c6c"
+      },
+      "paired_bootstrap": {
+        "path": "phase2_gru/artifacts/E2b_scaled/paired_bootstrap.json",
+        "exists": true,
+        "size_bytes": 939,
+        "sha256": "606eb491bf6f76f331458af2969049a84443944366a8f42b5aea1af5f01d90c3"
+      },
+      "common_ids": {
+        "path": "phase2_gru/artifacts/E2b_scaled/common_test_transaction_ids.txt",
+        "exists": true,
+        "size_bytes": 688678,
+        "sha256": "b908655798de8492c06372f2b1a2cc25498899ab2101022ae2356da77a95ec4e"
+      }
+    }
+  },
+  "step9_evaluation": {
+    "common_population": 76520,
+    "e1_only_excluded": 2022,
+    "e2b_coverage_pct": 97.43,
+    "common_fraud": 2700,
+    "common_legit": 73820,
+    "labels_verified_identical": true,
+    "test_evaluated_once": true,
+    "threshold_selected_on_validation": true,
+    "e1_metrics_common": {
+      "split": "E1_common",
+      "n_samples": 76520,
+      "n_fraud": 2700,
+      "n_legit": 73820,
+      "threshold": 0.616521,
+      "pr_auc": 0.526711,
+      "roc_auc": 0.898145,
+      "precision": 0.578993,
+      "recall": 0.49,
+      "f1": 0.530792,
+      "mcc": 0.517024,
+      "balanced_accuracy": 0.738484,
+      "brier_score": 0.032445,
+      "fpr": 0.013032,
+      "fnr": 0.51,
+      "tp": 1323,
+      "fp": 962,
+      "tn": 72858,
+      "fn": 1377
+    },
+    "e2b_metrics_common": {
+      "split": "E2b_common",
+      "n_samples": 76520,
+      "n_fraud": 2700,
+      "n_legit": 73820,
+      "threshold": 0.8102214336395264,
+      "pr_auc": 0.16827,
+      "roc_auc": 0.742219,
+      "precision": 0.191295,
+      "recall": 0.333704,
+      "f1": 0.243185,
+      "mcc": 0.216559,
+      "balanced_accuracy": 0.641053,
+      "brier_score": 0.237658,
+      "fpr": 0.051598,
+      "fnr": 0.666296,
+      "tp": 901,
+      "fp": 3809,
+      "tn": 70011,
+      "fn": 1799
+    },
+    "e1_operational_common": {
+      "recall_at_fpr_0.001": 0.208148,
+      "recall_at_fpr_0.005": 0.377037,
+      "recall_at_fpr_0.010": 0.457778,
+      "recall_at_fpr_0.020": 0.525926,
+      "precision_at_top_100": 0.98,
+      "precision_at_top_500": 0.904,
+      "precision_at_top_1000": 0.831,
+      "precision_at_top_5000": 0.3362
+    },
+    "e2b_operational_common": {
+      "recall_at_fpr_0.001": 0.021481,
+      "recall_at_fpr_0.005": 0.098519,
+      "recall_at_fpr_0.010": 0.144074,
+      "recall_at_fpr_0.020": 0.211852,
+      "precision_at_top_100": 0.48,
+      "precision_at_top_500": 0.428,
+      "precision_at_top_1000": 0.365,
+      "precision_at_top_5000": 0.185
+    },
+    "calibration": {
+      "e1_brier": 0.032445,
+      "e2b_brier": 0.237658,
+      "e1_ece": 0.052342,
+      "e2b_ece": 0.424701
+    },
+    "paired_bootstrap": {
+      "n_resamples": 2000,
+      "seed": 42,
+      "pr_auc_delta": -0.35844111579317517,
+      "pr_auc_ci_95": [
+        -0.3755715265624933,
+        -0.33947341452665314
+      ],
+      "pr_auc_ci_excludes_zero": true,
+      "roc_auc_delta": -0.1559256926257061,
+      "roc_auc_ci_95": [
+        -0.16715940175849875,
+        -0.14454939181321735
+      ]
+    }
+  },
+  "test_suite": {
+    "total_tests": 80,
+    "passed": 80,
+    "failed": 0,
+    "modules": [
+      "test_gru_architecture.py (AT1-AT15)",
+      "test_label_isolation.py (LT3)",
+      "test_preprocessing.py (PT1-PT8, 22 tests)",
+      "test_sequence_leakage.py (LT1, LT6, LT8)",
+      "test_split_integrity.py (LT7)",
+      "test_temporal_order.py (LT2, LT4, LT5)"
+    ]
+  },
+  "phase2_reports": {
+    "sequence_spec": "phase2_gru/reports/sequence_specification.md",
+    "e2a_training": "phase2_gru/reports/E2_training_report.md",
+    "e2b_training": "phase2_gru/reports/E2b_scaled_training_report.md",
+    "e2b_test_eval": "phase2_gru/reports/E2b_test_evaluation_report.md",
+    "e1_vs_e2b_comparison": "phase2_gru/reports/E1_vs_E2b_paired_comparison.md",
+    "step9_integrity_audit": "phase2_gru/reports/STEP9_integrity_audit.json",
+    "phase2_progress": "phase2_gru/reports/PHASE2_PROGRESS_REPORT.md"
+  },
+  "immutability_declarations": {
+    "E1_artifacts": "IMMUTABLE \u2014 do not retrain, modify predictions, or change thresholds",
+    "E2a_artifacts": "IMMUTABLE \u2014 preserved as control experiment (unscaled baseline)",
+    "E2b_artifacts": "IMMUTABLE \u2014 checkpoint epoch 2, scaler, predictions, bootstrap results",
+    "sequence_specification": "IMMUTABLE \u2014 locked design v1.1",
+    "test_results": "IMMUTABLE \u2014 80/80 final pass recorded"
+  },
+  "phase3_handoff": {
+    "next_experiment": "E3 Hybrid (IEEE-CIS)",
+    "research_question": "Does temporal information provide complementary signal when combined with the strong current-transaction tabular representation?",
+    "status": "WAITING \u2014 requires explicit approval before any implementation",
+    "constraint": "Must not modify E1, E2a, or E2b artifacts"
+  }
+}

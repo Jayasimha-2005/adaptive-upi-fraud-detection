@@ -1,0 +1,49 @@
+{
+  "step": "STEP 8 - E2 GRU Training",
+  "seed": 42,
+  "device": "cuda",
+  "torch_version": "2.13.0.dev20260603+cu132",
+  "architecture": {
+    "input_size": 406,
+    "hidden_size": 64,
+    "num_layers": 1,
+    "dropout": 0.2,
+    "seq_len": 4
+  },
+  "training": {
+    "optimizer": "adam",
+    "learning_rate": 0.001,
+    "batch_size": 128,
+    "max_epochs": 30,
+    "early_stop_patience": 5,
+    "monitor": "val_pr_auc",
+    "loss": "BCEWithLogitsLoss",
+    "pos_weight": 27.47,
+    "smote": false,
+    "random_oversample": false
+  },
+  "dataset": {
+    "train": {
+      "n": 398312,
+      "n_fraud": 14397
+    },
+    "validation": {
+      "n": 75727,
+      "n_fraud": 2567
+    },
+    "test": {
+      "n": 76520,
+      "n_fraud": 2700
+    }
+  },
+  "n_excluded_dup_dt": 585,
+  "results": {
+    "best_epoch": 1,
+    "best_val_pr_auc": 0.034510048974424584,
+    "epochs_completed": 6,
+    "early_stopped": true,
+    "total_time_s": 68.2
+  },
+  "test_evaluated": false,
+  "e1_modified": false
+}

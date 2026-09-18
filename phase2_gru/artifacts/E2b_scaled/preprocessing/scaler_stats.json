@@ -1,0 +1,13 @@
+{
+  "n_features": 406,
+  "n_near_zero_variance": 0,
+  "mean_range": [
+    0.48971593379974365,
+    19.982746124267578
+  ],
+  "scale_range": [
+    93.69144439697266,
+    107.7468032836914
+  ],
+  "fitted_on": "train sequences only"
+}

@@ -1,0 +1,19 @@
+{
+  "step": "STEP 9 integrity audit",
+  "e1_predictions_hash": "6a73279d81491437",
+  "e2b_checkpoint_hash": "31b17bb46d2c9257",
+  "e2b_scaler_hash": "fe294184277da80f",
+  "e1_metrics_hash": "6f3ab9c86f9b9f47",
+  "seed": 42,
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 5050 Laptop GPU",
+  "torch_version": "2.13.0.dev20260603+cu132",
+  "common_population": 76520,
+  "labels_verified": true,
+  "scaler_refitted": false,
+  "test_labels_used_for": "final metric computation only",
+  "threshold_selected_on": "validation only (F1-max)",
+  "e1_modified": false,
+  "e2a_modified": false,
+  "e2b_checkpoint_modified": false
+}
