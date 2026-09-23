@@ -65,3 +65,6 @@ experiments/E3_hybrid/
 *.pem
 secrets.yaml
 credentials.json
+
+# Spark generated outputs and checkpoints
+spark/output/
