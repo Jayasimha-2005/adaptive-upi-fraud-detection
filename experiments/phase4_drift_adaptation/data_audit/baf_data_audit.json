@@ -1,0 +1,1228 @@
+{
+  "Base.csv": {
+    "file": "Base.csv",
+    "size_bytes": 213427735,
+    "sha256_16": "7bf10a37ce07e72e",
+    "n_rows": 1000000,
+    "n_cols": 32,
+    "columns": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "payment_type",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "employment_status",
+      "credit_risk_score",
+      "email_is_free",
+      "housing_status",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "source",
+      "session_length_in_minutes",
+      "device_os",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "target": {
+      "target_col": "fraud_bool",
+      "n_fraud": 11029,
+      "n_legit": 988971,
+      "fraud_rate": 0.011029
+    },
+    "temporal": {
+      "time_col": "month",
+      "n_periods": 8,
+      "periods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "by_period": [
+        {
+          "period": 0,
+          "rows": 132440,
+          "fraud": 1500,
+          "fraud_rate": 0.011326,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 1,
+          "rows": 127620,
+          "fraud": 1198,
+          "fraud_rate": 0.009387,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 2,
+          "rows": 136979,
+          "fraud": 1198,
+          "fraud_rate": 0.008746,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 3,
+          "rows": 150936,
+          "fraud": 1392,
+          "fraud_rate": 0.009222,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 4,
+          "rows": 127691,
+          "fraud": 1452,
+          "fraud_rate": 0.011371,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 5,
+          "rows": 119323,
+          "fraud": 1411,
+          "fraud_rate": 0.011825,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 6,
+          "rows": 108168,
+          "fraud": 1450,
+          "fraud_rate": 0.013405,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 7,
+          "rows": 96843,
+          "fraud": 1428,
+          "fraud_rate": 0.014746,
+          "mean_missingness": 0.0
+        }
+      ]
+    },
+    "id_cols": [],
+    "numerical_cols": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "credit_risk_score",
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "session_length_in_minutes",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "categorical_cols": [
+      "payment_type",
+      "employment_status",
+      "housing_status",
+      "source",
+      "device_os"
+    ],
+    "duplicate_rows": 0,
+    "constant_cols": [
+      "device_fraud_count"
+    ],
+    "near_constant_cols": [
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "has_other_cards",
+      "foreign_request",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count"
+    ],
+    "missing_by_col": {},
+    "distribution_shift": {
+      "ks_vs_initial": [
+        {
+          "period": 1,
+          "mean_ks_vs_period0": 0.0896
+        },
+        {
+          "period": 2,
+          "mean_ks_vs_period0": 0.0944
+        },
+        {
+          "period": 3,
+          "mean_ks_vs_period0": 0.0874
+        },
+        {
+          "period": 4,
+          "mean_ks_vs_period0": 0.0941
+        },
+        {
+          "period": 5,
+          "mean_ks_vs_period0": 0.1417
+        },
+        {
+          "period": 6,
+          "mean_ks_vs_period0": 0.1518
+        },
+        {
+          "period": 7,
+          "mean_ks_vs_period0": 0.1817
+        }
+      ]
+    }
+  },
+  "Variant I.csv": {
+    "file": "Variant I.csv",
+    "size_bytes": 213400445,
+    "sha256_16": "48c637a255d1fa45",
+    "n_rows": 1000000,
+    "n_cols": 32,
+    "columns": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "payment_type",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "employment_status",
+      "credit_risk_score",
+      "email_is_free",
+      "housing_status",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "source",
+      "session_length_in_minutes",
+      "device_os",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "target": {
+      "target_col": "fraud_bool",
+      "n_fraud": 11029,
+      "n_legit": 988971,
+      "fraud_rate": 0.011029
+    },
+    "temporal": {
+      "time_col": "month",
+      "n_periods": 8,
+      "periods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "by_period": [
+        {
+          "period": 0,
+          "rows": 132440,
+          "fraud": 1500,
+          "fraud_rate": 0.011326,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 1,
+          "rows": 127620,
+          "fraud": 1198,
+          "fraud_rate": 0.009387,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 2,
+          "rows": 136979,
+          "fraud": 1198,
+          "fraud_rate": 0.008746,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 3,
+          "rows": 150938,
+          "fraud": 1392,
+          "fraud_rate": 0.009222,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 4,
+          "rows": 127691,
+          "fraud": 1452,
+          "fraud_rate": 0.011371,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 5,
+          "rows": 119322,
+          "fraud": 1411,
+          "fraud_rate": 0.011825,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 6,
+          "rows": 108168,
+          "fraud": 1450,
+          "fraud_rate": 0.013405,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 7,
+          "rows": 96842,
+          "fraud": 1428,
+          "fraud_rate": 0.014746,
+          "mean_missingness": 0.0
+        }
+      ]
+    },
+    "id_cols": [],
+    "numerical_cols": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "credit_risk_score",
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "session_length_in_minutes",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "categorical_cols": [
+      "payment_type",
+      "employment_status",
+      "housing_status",
+      "source",
+      "device_os"
+    ],
+    "duplicate_rows": 0,
+    "constant_cols": [
+      "device_fraud_count"
+    ],
+    "near_constant_cols": [
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "has_other_cards",
+      "foreign_request",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count"
+    ],
+    "missing_by_col": {},
+    "distribution_shift": {
+      "ks_vs_initial": [
+        {
+          "period": 1,
+          "mean_ks_vs_period0": 0.0907
+        },
+        {
+          "period": 2,
+          "mean_ks_vs_period0": 0.0949
+        },
+        {
+          "period": 3,
+          "mean_ks_vs_period0": 0.0887
+        },
+        {
+          "period": 4,
+          "mean_ks_vs_period0": 0.0951
+        },
+        {
+          "period": 5,
+          "mean_ks_vs_period0": 0.1462
+        },
+        {
+          "period": 6,
+          "mean_ks_vs_period0": 0.1538
+        },
+        {
+          "period": 7,
+          "mean_ks_vs_period0": 0.1848
+        }
+      ]
+    }
+  },
+  "Variant II.csv": {
+    "file": "Variant II.csv",
+    "size_bytes": 213537521,
+    "sha256_16": "60bcd971cf28779a",
+    "n_rows": 1000000,
+    "n_cols": 32,
+    "columns": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "payment_type",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "employment_status",
+      "credit_risk_score",
+      "email_is_free",
+      "housing_status",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "source",
+      "session_length_in_minutes",
+      "device_os",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "target": {
+      "target_col": "fraud_bool",
+      "n_fraud": 11029,
+      "n_legit": 988971,
+      "fraud_rate": 0.011029
+    },
+    "temporal": {
+      "time_col": "month",
+      "n_periods": 8,
+      "periods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "by_period": [
+        {
+          "period": 0,
+          "rows": 132440,
+          "fraud": 1500,
+          "fraud_rate": 0.011326,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 1,
+          "rows": 127620,
+          "fraud": 1198,
+          "fraud_rate": 0.009387,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 2,
+          "rows": 136978,
+          "fraud": 1198,
+          "fraud_rate": 0.008746,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 3,
+          "rows": 150937,
+          "fraud": 1392,
+          "fraud_rate": 0.009222,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 4,
+          "rows": 127691,
+          "fraud": 1452,
+          "fraud_rate": 0.011371,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 5,
+          "rows": 119324,
+          "fraud": 1411,
+          "fraud_rate": 0.011825,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 6,
+          "rows": 108168,
+          "fraud": 1450,
+          "fraud_rate": 0.013405,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 7,
+          "rows": 96842,
+          "fraud": 1428,
+          "fraud_rate": 0.014746,
+          "mean_missingness": 0.0
+        }
+      ]
+    },
+    "id_cols": [],
+    "numerical_cols": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "credit_risk_score",
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "session_length_in_minutes",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "categorical_cols": [
+      "payment_type",
+      "employment_status",
+      "housing_status",
+      "source",
+      "device_os"
+    ],
+    "duplicate_rows": 0,
+    "constant_cols": [
+      "device_fraud_count"
+    ],
+    "near_constant_cols": [
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "has_other_cards",
+      "foreign_request",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count"
+    ],
+    "missing_by_col": {},
+    "distribution_shift": {
+      "ks_vs_initial": [
+        {
+          "period": 1,
+          "mean_ks_vs_period0": 0.0852
+        },
+        {
+          "period": 2,
+          "mean_ks_vs_period0": 0.0901
+        },
+        {
+          "period": 3,
+          "mean_ks_vs_period0": 0.0821
+        },
+        {
+          "period": 4,
+          "mean_ks_vs_period0": 0.0935
+        },
+        {
+          "period": 5,
+          "mean_ks_vs_period0": 0.1363
+        },
+        {
+          "period": 6,
+          "mean_ks_vs_period0": 0.1432
+        },
+        {
+          "period": 7,
+          "mean_ks_vs_period0": 0.1691
+        }
+      ]
+    }
+  },
+  "Variant III.csv": {
+    "file": "Variant III.csv",
+    "size_bytes": 252204320,
+    "sha256_16": "64693e549cff7ef8",
+    "n_rows": 1000000,
+    "n_cols": 34,
+    "columns": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "payment_type",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "employment_status",
+      "credit_risk_score",
+      "email_is_free",
+      "housing_status",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "source",
+      "session_length_in_minutes",
+      "device_os",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month",
+      "x1",
+      "x2"
+    ],
+    "target": {
+      "target_col": "fraud_bool",
+      "n_fraud": 11030,
+      "n_legit": 988970,
+      "fraud_rate": 0.01103
+    },
+    "temporal": {
+      "time_col": "month",
+      "n_periods": 8,
+      "periods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "by_period": [
+        {
+          "period": 0,
+          "rows": 80026,
+          "fraud": 936,
+          "fraud_rate": 0.011696,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 1,
+          "rows": 105278,
+          "fraud": 938,
+          "fraud_rate": 0.00891,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 2,
+          "rows": 142613,
+          "fraud": 1044,
+          "fraud_rate": 0.007321,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 3,
+          "rows": 156546,
+          "fraud": 2136,
+          "fraud_rate": 0.013645,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 4,
+          "rows": 126369,
+          "fraud": 1982,
+          "fraud_rate": 0.015684,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 5,
+          "rows": 147496,
+          "fraud": 1342,
+          "fraud_rate": 0.009099,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 6,
+          "rows": 136092,
+          "fraud": 1668,
+          "fraud_rate": 0.012256,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 7,
+          "rows": 105580,
+          "fraud": 984,
+          "fraud_rate": 0.00932,
+          "mean_missingness": 0.0
+        }
+      ]
+    },
+    "id_cols": [],
+    "numerical_cols": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "credit_risk_score",
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "session_length_in_minutes",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month",
+      "x1",
+      "x2"
+    ],
+    "categorical_cols": [
+      "payment_type",
+      "employment_status",
+      "housing_status",
+      "source",
+      "device_os"
+    ],
+    "duplicate_rows": 0,
+    "constant_cols": [
+      "device_fraud_count"
+    ],
+    "near_constant_cols": [
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "has_other_cards",
+      "foreign_request",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count"
+    ],
+    "missing_by_col": {},
+    "distribution_shift": {
+      "ks_vs_initial": [
+        {
+          "period": 1,
+          "mean_ks_vs_period0": 0.0861
+        },
+        {
+          "period": 2,
+          "mean_ks_vs_period0": 0.0903
+        },
+        {
+          "period": 3,
+          "mean_ks_vs_period0": 0.0824
+        },
+        {
+          "period": 4,
+          "mean_ks_vs_period0": 0.0943
+        },
+        {
+          "period": 5,
+          "mean_ks_vs_period0": 0.1363
+        },
+        {
+          "period": 6,
+          "mean_ks_vs_period0": 0.1433
+        },
+        {
+          "period": 7,
+          "mean_ks_vs_period0": 0.1693
+        }
+      ]
+    }
+  },
+  "Variant IV.csv": {
+    "file": "Variant IV.csv",
+    "size_bytes": 213538370,
+    "sha256_16": "c6cddebbad34fa26",
+    "n_rows": 1000000,
+    "n_cols": 32,
+    "columns": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "payment_type",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "employment_status",
+      "credit_risk_score",
+      "email_is_free",
+      "housing_status",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "source",
+      "session_length_in_minutes",
+      "device_os",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "target": {
+      "target_col": "fraud_bool",
+      "n_fraud": 11030,
+      "n_legit": 988970,
+      "fraud_rate": 0.01103
+    },
+    "temporal": {
+      "time_col": "month",
+      "n_periods": 8,
+      "periods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "by_period": [
+        {
+          "period": 0,
+          "rows": 80026,
+          "fraud": 936,
+          "fraud_rate": 0.011696,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 1,
+          "rows": 105277,
+          "fraud": 938,
+          "fraud_rate": 0.00891,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 2,
+          "rows": 142615,
+          "fraud": 1045,
+          "fraud_rate": 0.007327,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 3,
+          "rows": 156544,
+          "fraud": 2135,
+          "fraud_rate": 0.013638,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 4,
+          "rows": 126370,
+          "fraud": 1982,
+          "fraud_rate": 0.015684,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 5,
+          "rows": 147496,
+          "fraud": 1342,
+          "fraud_rate": 0.009099,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 6,
+          "rows": 136092,
+          "fraud": 1668,
+          "fraud_rate": 0.012256,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 7,
+          "rows": 105580,
+          "fraud": 984,
+          "fraud_rate": 0.00932,
+          "mean_missingness": 0.0
+        }
+      ]
+    },
+    "id_cols": [],
+    "numerical_cols": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "credit_risk_score",
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "session_length_in_minutes",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month"
+    ],
+    "categorical_cols": [
+      "payment_type",
+      "employment_status",
+      "housing_status",
+      "source",
+      "device_os"
+    ],
+    "duplicate_rows": 0,
+    "constant_cols": [
+      "device_fraud_count"
+    ],
+    "near_constant_cols": [
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "has_other_cards",
+      "foreign_request",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count"
+    ],
+    "missing_by_col": {},
+    "distribution_shift": {
+      "ks_vs_initial": [
+        {
+          "period": 1,
+          "mean_ks_vs_period0": 0.0861
+        },
+        {
+          "period": 2,
+          "mean_ks_vs_period0": 0.0902
+        },
+        {
+          "period": 3,
+          "mean_ks_vs_period0": 0.0823
+        },
+        {
+          "period": 4,
+          "mean_ks_vs_period0": 0.0942
+        },
+        {
+          "period": 5,
+          "mean_ks_vs_period0": 0.1364
+        },
+        {
+          "period": 6,
+          "mean_ks_vs_period0": 0.1434
+        },
+        {
+          "period": 7,
+          "mean_ks_vs_period0": 0.1693
+        }
+      ]
+    }
+  },
+  "Variant V.csv": {
+    "file": "Variant V.csv",
+    "size_bytes": 252214315,
+    "sha256_16": "470899bbef97c32a",
+    "n_rows": 1000000,
+    "n_cols": 34,
+    "columns": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "payment_type",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "employment_status",
+      "credit_risk_score",
+      "email_is_free",
+      "housing_status",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "source",
+      "session_length_in_minutes",
+      "device_os",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month",
+      "x1",
+      "x2"
+    ],
+    "target": {
+      "target_col": "fraud_bool",
+      "n_fraud": 11030,
+      "n_legit": 988970,
+      "fraud_rate": 0.01103
+    },
+    "temporal": {
+      "time_col": "month",
+      "n_periods": 8,
+      "periods": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "by_period": [
+        {
+          "period": 0,
+          "rows": 80026,
+          "fraud": 936,
+          "fraud_rate": 0.011696,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 1,
+          "rows": 105278,
+          "fraud": 938,
+          "fraud_rate": 0.00891,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 2,
+          "rows": 142614,
+          "fraud": 1044,
+          "fraud_rate": 0.00732,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 3,
+          "rows": 156546,
+          "fraud": 2136,
+          "fraud_rate": 0.013645,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 4,
+          "rows": 126368,
+          "fraud": 1982,
+          "fraud_rate": 0.015684,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 5,
+          "rows": 147496,
+          "fraud": 1342,
+          "fraud_rate": 0.009099,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 6,
+          "rows": 136092,
+          "fraud": 1668,
+          "fraud_rate": 0.012256,
+          "mean_missingness": 0.0
+        },
+        {
+          "period": 7,
+          "rows": 105580,
+          "fraud": 984,
+          "fraud_rate": 0.00932,
+          "mean_missingness": 0.0
+        }
+      ]
+    },
+    "id_cols": [],
+    "numerical_cols": [
+      "fraud_bool",
+      "income",
+      "name_email_similarity",
+      "prev_address_months_count",
+      "current_address_months_count",
+      "customer_age",
+      "days_since_request",
+      "intended_balcon_amount",
+      "zip_count_4w",
+      "velocity_6h",
+      "velocity_24h",
+      "velocity_4w",
+      "bank_branch_count_8w",
+      "date_of_birth_distinct_emails_4w",
+      "credit_risk_score",
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "bank_months_count",
+      "has_other_cards",
+      "proposed_credit_limit",
+      "foreign_request",
+      "session_length_in_minutes",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count",
+      "month",
+      "x1",
+      "x2"
+    ],
+    "categorical_cols": [
+      "payment_type",
+      "employment_status",
+      "housing_status",
+      "source",
+      "device_os"
+    ],
+    "duplicate_rows": 0,
+    "constant_cols": [
+      "device_fraud_count"
+    ],
+    "near_constant_cols": [
+      "email_is_free",
+      "phone_home_valid",
+      "phone_mobile_valid",
+      "has_other_cards",
+      "foreign_request",
+      "keep_alive_session",
+      "device_distinct_emails_8w",
+      "device_fraud_count"
+    ],
+    "missing_by_col": {},
+    "distribution_shift": {
+      "ks_vs_initial": [
+        {
+          "period": 1,
+          "mean_ks_vs_period0": 0.0855
+        },
+        {
+          "period": 2,
+          "mean_ks_vs_period0": 0.0905
+        },
+        {
+          "period": 3,
+          "mean_ks_vs_period0": 0.0808
+        },
+        {
+          "period": 4,
+          "mean_ks_vs_period0": 0.0935
+        },
+        {
+          "period": 5,
+          "mean_ks_vs_period0": 0.1355
+        },
+        {
+          "period": 6,
+          "mean_ks_vs_period0": 0.1433
+        },
+        {
+          "period": 7,
+          "mean_ks_vs_period0": 0.1689
+        }
+      ]
+    }
+  }
+}

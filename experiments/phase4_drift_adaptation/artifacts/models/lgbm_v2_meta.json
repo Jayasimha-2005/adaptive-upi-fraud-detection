@@ -1,0 +1,30 @@
+{
+  "version_label": "v2",
+  "training_months": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "n_train": 794989,
+  "n_fraud": 8151,
+  "fraud_rate": 0.010252972053701372,
+  "training_time_s": 16.467402935028076,
+  "params": {
+    "n_estimators": 500,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "num_leaves": 63,
+    "min_child_samples": 50,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "class_weight": "balanced",
+    "random_state": 42,
+    "verbose": -1
+  },
+  "lgb_version": "4.7.0",
+  "model_hash": "e4f249253fab9125c9781e35be548b6a7c96666ddcf6d8f236c8c89fcc260d4e",
+  "model_file": "C:\\Users\\Harini\\Documents\\GitHub\\Jayasimha-github\\adaptive-upi-fraud-detection\\experiments\\phase4_drift_adaptation\\artifacts\\models\\lgbm_v2.txt"
+}

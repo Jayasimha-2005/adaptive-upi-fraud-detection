@@ -1,0 +1,67 @@
+[16:25:51] ============================================================
+[16:25:51] PHASE 4 EXPERIMENT PIPELINE — Protocol v1.1
+[16:25:51] Run ID: 20260919_162551
+[16:25:51] ============================================================
+[16:25:51] STEP 1 — Loading BAF Base.csv
+[16:25:59]   Loaded: 1,000,000 rows, 32 columns
+[16:25:59] STEP 2 — Building locked temporal splits (no random split)
+[16:26:00]   All period counts verified against protocol.
+[16:26:00] STEP 3 — Training Model v1 on months 0-3
+[16:26:29]   v1 trained. Hash: 2cb7bc1247114aaa
+[16:26:29] STEP 4 — Month 4: Threshold selection (v1 predictions, PERMANENT FREEZE)
+[16:26:34]   Threshold FROZEN: 0.896432 (val F1=0.2458)
+[16:26:34]   This threshold will NOT change for v2 or v3.
+[16:26:34] STEP 5 — Building PSI reference distribution (months 0-3, fixed forever)
+[16:26:34]   PSI reference built and saved (months 0-3 ONLY).
+[16:26:34] STEP 6 — Month 5: PSI drift monitoring (Window 1)
+[16:26:34]   Month 5 PSI: 17/29 features >= 0.1 | Triggered: True
+[16:26:34]   Top shifted features: [('prev_address_months_count', 19.1129), ('velocity_4w', 6.6589), ('bank_months_count', 6.2102), ('income', 4.4745), ('velocity_24h', 3.5387)]
+[16:26:34] STEP 7 — Month 5 TRIGGERED: Training v2 on months 0-5
+[16:26:51]   v2 trained. Hash: e4f249253fab9125
+[16:26:51]   Threshold remains FROZEN (not re-selected for v2).
+[16:26:51] STEP 8 — Month 6: Evaluation (static v1 vs adaptive v2)
+[16:26:59]   Month 6 Static  PR-AUC: 0.165667
+[16:26:59]   Month 6 Adaptive PR-AUC: 0.172467
+[16:26:59]   Month 6 Delta: +0.006800
+[16:26:59] STEP 9 — Month 6: PSI drift monitoring (Window 2, AFTER evaluation)
+[16:27:00]   Month 6 PSI: 18/29 features >= 0.1 | Triggered: True
+[16:27:00]   Top shifted features: [('prev_address_months_count', 18.8195), ('velocity_4w', 6.662), ('bank_months_count', 6.1877), ('income', 4.4372), ('velocity_24h', 4.3845)]
+[16:27:00] STEP 10 — Month 6 TRIGGERED: Training v3 on months 0-6
+[16:27:23]   v3 trained. Hash: cd3908ae85418ed4
+[16:27:23]   Threshold remains FROZEN (not re-selected for v3).
+[16:27:23] STEP 11 — Month 7: PROTECTED FINAL EVALUATION (evaluated EXACTLY ONCE)
+[16:27:23]   Static: v1 | Adaptive: v3 | Threshold: 0.896432
+[16:27:24]   Month 7 Static   PR-AUC: 0.160858
+[16:27:24]   Month 7 Adaptive PR-AUC: 0.201027
+[16:27:24]   Month 7 Delta:           +0.040169
+[16:27:24]   Month 7 evaluation COMPLETE. No further tuning or retraining permitted.
+[16:27:24] STEP 12 — Paired bootstrap (2000 resamples, seed=42)
+[16:29:42] Bootstrap (month6):
+  Static PR-AUC:   0.165667
+  Adaptive PR-AUC: 0.172467
+  Delta (A-S):     +0.006800
+  95% CI:          [-0.002316, +0.015793]
+  Interpretation:  No significant difference
+  Resamples: 2000, seed=42
+[16:29:42] Bootstrap (month7):
+  Static PR-AUC:   0.160858
+  Adaptive PR-AUC: 0.201027
+  Delta (A-S):     +0.040169
+  95% CI:          [+0.026752, +0.053843]
+  Interpretation:  Adaptive significantly higher
+  Resamples: 2000, seed=42
+[16:29:42] STEP 13 — Saving master results manifest
+[16:29:42] ============================================================
+[16:29:42] PHASE 4 STATUS: COMPLETE
+[16:29:42]   Dataset:              BAF Base (hash: 7bf10a37ce07e72e)
+[16:29:42]   Protocol:             v1.1
+[16:29:42]   Frozen threshold:     0.896432
+[16:29:42]   Month 5 retrain:      YES -> v2
+[16:29:42]   Month 6 retrain:      YES -> v3
+[16:29:42]   Adaptive final ver:   v3
+[16:29:42]   Month 6 delta PR-AUC: +0.006800
+[16:29:42]   Month 7 delta PR-AUC: +0.040169
+[16:29:42]   Month 6 95% CI:       [-0.002316, +0.015793]
+[16:29:42]   Month 7 95% CI:       [+0.026752, +0.053843]
+[16:29:42] ============================================================
+[16:29:42] STOPPING. Phase 5 / streaming / deployment NOT started.

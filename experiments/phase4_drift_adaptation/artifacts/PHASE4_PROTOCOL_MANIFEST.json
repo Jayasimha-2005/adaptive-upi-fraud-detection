@@ -1,0 +1,243 @@
+{
+  "protocol_version": "1.1",
+  "status": "FINAL — APPROVED FOR IMPLEMENTATION",
+  "phase": "Phase 4 — Concept Drift Detection + Adaptive Retraining",
+  "date": "2026-09-19",
+  "preceding_phases": {
+    "E1": "FROZEN",
+    "E2a": "FROZEN",
+    "E2b": "FROZEN",
+    "E3A": "VERIFIED",
+    "E3B": "VERIFIED",
+    "E3C": "VERIFIED",
+    "control_gate": "PASSED"
+  },
+  "dataset": {
+    "name": "BAF Base",
+    "file": "Datasets/BAF/Base.csv",
+    "sha256_16": "7bf10a37ce07e72e",
+    "n_rows": 1000000,
+    "n_cols": 32,
+    "target_col": "fraud_bool",
+    "time_col": "month",
+    "n_periods": 8,
+    "periods": [0, 1, 2, 3, 4, 5, 6, 7],
+    "constant_col_dropped": "device_fraud_count",
+    "excluded_cols": ["fraud_bool", "month", "device_fraud_count"],
+    "usable_features": 29,
+    "numerical_features": 24,
+    "categorical_features": 5,
+    "missingness": "none",
+    "duplicates": 0
+  },
+  "temporal_split": {
+    "initial_training": [0, 1, 2, 3],
+    "validation_threshold_only": [4],
+    "monitoring_windows": [5, 6],
+    "monitoring_note": "Sequential: Month 5 first, Month 6 after Month 6 evaluation",
+    "evaluation_period_1": [6],
+    "evaluation_period_2_protected": [7],
+    "total_training_rows": 547975,
+    "total_training_fraud": 5288,
+    "validation_rows": 127691,
+    "validation_fraud": 1452,
+    "monitoring_rows": 119323,
+    "monitoring_fraud": 1411,
+    "eval1_rows": 108168,
+    "eval1_fraud": 1450,
+    "eval2_rows": 96843,
+    "eval2_fraud": 1428
+  },
+  "static_model": {
+    "algorithm": "LightGBM",
+    "label": "Model A — Static",
+    "training_data": "months 0-3",
+    "never_retrained": true,
+    "hyperparameters": {
+      "n_estimators": 500,
+      "learning_rate": 0.05,
+      "max_depth": 6,
+      "num_leaves": 63,
+      "min_child_samples": 50,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "class_weight": "balanced",
+      "scale_pos_weight": "NOT USED — class_weight=balanced is the single deterministic imbalance treatment",
+      "random_state": 42
+    },
+    "categorical_encoding": {
+      "method": "LightGBM native categorical",
+      "categorical_feature": ["payment_type", "employment_status", "housing_status", "source", "device_os"],
+      "ordinal_encoder": "NOT USED",
+      "v1_categories_fitted_on": "months 0-3"
+    }
+  },
+  "adaptive_model": {
+    "algorithm": "LightGBM",
+    "label": "Model B — Drift-Triggered Adaptive",
+    "initial_training_data": "months 0-3",
+    "retraining_trigger": "drift_detected",
+    "retraining_policy": "expanding_window",
+    "retraining_data_on_trigger": "all months up to and including monitoring period",
+    "preprocessing_refit_on_retrain": true,
+    "hyperparameters": "identical to static model",
+    "categorical_encoding": {
+      "method": "LightGBM native categorical",
+      "categorical_feature": ["payment_type", "employment_status", "housing_status", "source", "device_os"],
+      "v1_categories_fitted_on": "months 0-3",
+      "v2_categories_refitted_on": "months 0-5",
+      "v3_categories_refitted_on": "months 0-6",
+      "future_leakage": "none — each version uses only its available training data"
+    },
+    "cooldown_definition": "AT MOST ONE retraining event per monitoring window. Month 5 and Month 6 are independent monitoring windows. A trigger at Month 5 does NOT prevent a trigger at Month 6. cooldown_periods=1 means only one trigger is possible within a single window, not across the experiment."
+  },
+  "drift_detection": {
+    "method": "PSI",
+    "label_required": false,
+    "reference_distribution": "months 0-3 pooled",
+    "reference_reset_after_retrain": false,
+    "monitoring_windows": [5, 6],
+    "monitoring_window_note": "Sequential: Month 5 then Month 6 (after Month 6 evaluation)",
+    "features_monitored": "all 29 model-input features (24 numerical + 5 categorical)",
+    "features_denominator": 29,
+    "per_feature_threshold": 0.10,
+    "aggregate_trigger": "count_exceeds_threshold",
+    "aggregate_count_required": 6,
+    "aggregate_fraction_equivalent": "6/29 = 20.7%",
+    "psi_threshold_character": "Pre-specified operational warning threshold based on credit-risk monitoring conventions; not a universal statistical significance threshold",
+    "numerical_binning": {
+      "method": "quantile",
+      "n_bins": 10,
+      "bin_edges": "fitted on months 0-3 only",
+      "edge_reuse": "same edges applied to all future monitoring windows",
+      "out_of_range": "clip to outermost reference bin",
+      "smoothing_epsilon": 1e-6
+    },
+    "categorical_handling": {
+      "reference": "category frequency distribution from months 0-3",
+      "unseen_categories": "assigned to __UNSEEN__ bucket",
+      "smoothing_epsilon": 1e-6
+    },
+    "minimum_observations": 50000,
+    "consecutive_windows_required": 1,
+    "max_triggers_per_window": 1,
+    "global_max_triggers": "not capped; at most 2 (one per monitoring window)",
+    "label_availability_for_retraining": "Fraud labels for a completed monitoring period are assumed available before the subsequent retraining event. Drift detection is label-free; retraining uses labels from the completed period."
+  },
+  "threshold_policy": {
+    "method": "F1-max over 200 thresholds (0.01-0.99)",
+    "threshold_selection_data": "month 4, v1 predictions only",
+    "threshold_frozen_permanently": true,
+    "applied_to_all_versions": true,
+    "versions": ["v1", "v2", "v3"],
+    "re_selection_prohibited": true,
+    "re_selection_prohibition_reason": "Month 4 enters v2/v3 training data; re-evaluating on Month 4 after retraining constitutes validation contamination",
+    "test_labels_used": false,
+    "pr_auc_threshold_independent": true,
+    "roc_auc_threshold_independent": true
+  },
+  "evaluation": {
+    "primary_metric": "PR-AUC",
+    "secondary_metrics": [
+      "ROC-AUC", "Precision", "Recall", "F1", "MCC",
+      "Balanced Accuracy", "FPR", "FNR", "Brier Score",
+      "Recall@FPR=0.001", "Recall@FPR=0.005",
+      "Recall@FPR=0.010", "Recall@FPR=0.020",
+      "P@100", "P@500", "P@1000"
+    ],
+    "evaluation_periods": [6, 7],
+    "protected_final_period": 7,
+    "comparison": "Static (A) vs Drift-Triggered Adaptive (B)",
+    "temporal_scope": {
+      "distribution_drift_analysis": "months 0-7",
+      "model_performance_plots": "months 6-7 only (out-of-sample)",
+      "adaptation_event_timeline": "months 5-6",
+      "note": "Do not plot model performance for months 0-5; static model has no out-of-sample predictions for training/validation/monitoring periods"
+    }
+  },
+  "statistical_testing": {
+    "method": "paired_bootstrap",
+    "n_resamples": 2000,
+    "seed": 42,
+    "statistic": "delta_PR_AUC = Adaptive - Static",
+    "confidence_interval": "95%",
+    "population": "identical evaluation period rows"
+  },
+  "reproducibility": {
+    "seed": 42,
+    "file_hash": "7bf10a37ce07e72e",
+    "versions_to_record_at_implementation": ["python", "lightgbm", "pandas", "numpy", "scikit-learn"]
+  },
+  "risk_register": [
+    {
+      "risk": "Test leakage",
+      "why_matters": "Invalidates adaptation result",
+      "prevention": "Month 7 evaluated exactly once after protocol freeze"
+    },
+    {
+      "risk": "Threshold tuning on evaluation data",
+      "why_matters": "Optimistic threshold-dependent metrics",
+      "prevention": "Threshold derived from month 4 only"
+    },
+    {
+      "risk": "PSI threshold tuning post-monitoring",
+      "why_matters": "Post-hoc drift trigger design",
+      "prevention": "PSI=0.1 and 20% fraction locked in protocol before implementation"
+    },
+    {
+      "risk": "Future preprocessing leakage",
+      "why_matters": "Temporal leakage inflates apparent performance",
+      "prevention": "Encoder/scaler fit on months 0-3 only; refit only on expanded training set"
+    },
+    {
+      "risk": "Retraining on future labels",
+      "why_matters": "Unrealistic assumption violates deployment scenario",
+      "prevention": "Drift detection is label-free (PSI on features only)"
+    },
+    {
+      "risk": "Tiny monitoring window",
+      "why_matters": "Unstable drift statistics",
+      "prevention": "Minimum 50,000 observations required (month 5 has 119,323)"
+    },
+    {
+      "risk": "Excessive retraining events",
+      "why_matters": "Cost / instability from over-adaptation",
+      "prevention": "At most one retraining event per monitoring window; Month 5 and Month 6 are independent windows — a trigger at Month 5 does NOT block Month 6"
+    },
+    {
+      "risk": "Architecture changes between static and adaptive",
+      "why_matters": "Confounds adaptation vs architecture comparison",
+      "prevention": "Identical LightGBM hyperparameters for both models"
+    },
+    {
+      "risk": "BAF variant mixing",
+      "why_matters": "Mixes different population structures",
+      "prevention": "Primary experiment uses Base only; variants are secondary"
+    },
+    {
+      "risk": "Hyperparameter search",
+      "why_matters": "Optimizes model, not adaptation mechanism",
+      "prevention": "Fixed LightGBM configuration; no HPO in Phase 4"
+    }
+  ],
+  "limitations": [
+    "BAF is synthetic/privacy-preserving — findings scoped to BAF",
+    "Only 8 temporal periods — limited temporal resolution",
+    "Single dataset for primary drift experiment",
+    "Only PSI tested as drift detector",
+    "Only LightGBM tested as base model",
+    "Single random seed — no cross-seed variance",
+    "No entity tracking across months",
+    "No production deployment evidence",
+    "Fraud rate drift may reflect synthetic generation choices",
+    "Only expanding-window retraining policy tested"
+  ],
+  "documents_created": {
+    "dataset_audit": "experiments/phase4_drift_adaptation/docs/PHASE4_DATASET_AUDIT.md",
+    "research_protocol": "experiments/phase4_drift_adaptation/docs/PHASE4_RESEARCH_PROTOCOL.md",
+    "design_decisions": "experiments/phase4_drift_adaptation/docs/PHASE4_DESIGN_DECISIONS.md",
+    "protocol_manifest": "experiments/phase4_drift_adaptation/artifacts/PHASE4_PROTOCOL_MANIFEST.json",
+    "raw_audit_data": "experiments/phase4_drift_adaptation/data_audit/baf_data_audit.json"
+  },
+  "go_no_go": "APPROVED — Protocol v1.1 FINAL confirmed by research lead 2026-09-19"
+}
