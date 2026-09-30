@@ -1,5 +1,15 @@
 import argparse
 import os
+import sys
+
+# Ensure Spark uses the same Python interpreter as the driver.
+# This is especially important on Windows when using a virtual environment.
+os.environ["PYSPARK_PYTHON"] = sys.executable
+os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+
+from typing import Iterator
+
+import pandas as pd
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
@@ -9,7 +19,9 @@ from pyspark.sql.types import (
     StringType,
     DoubleType,
     TimestampType,
+    ArrayType,
 )
+from pyspark.sql.streaming.state import GroupStateTimeout
 
 
 # ============================================================
@@ -25,15 +37,21 @@ KAFKA_PACKAGE = (
 DEFAULT_BOOTSTRAP = "localhost:9092"
 DEFAULT_TOPIC = "fraud-transactions"
 
-DEFAULT_OUTPUT = "spark/output/streaming/features"
-DEFAULT_CHECKPOINT = "spark/output/streaming/checkpoint"
+DEFAULT_OUTPUT = (
+    "spark/output/streaming/features"
+)
+
+DEFAULT_CHECKPOINT = (
+    "spark/output/streaming/checkpoint"
+)
 
 DEFAULT_PREVIOUS_OUTPUT = (
     "spark/output/streaming/previous_transaction"
 )
 
 DEFAULT_PREVIOUS_CHECKPOINT = (
-    "spark/output/streaming/previous_transaction_checkpoint_v2"
+    "spark/output/streaming/"
+    "previous_transaction_checkpoint_v3"
 )
 
 
@@ -43,18 +61,32 @@ DEFAULT_PREVIOUS_CHECKPOINT = (
 
 def create_spark() -> SparkSession:
     """
-    Create the Spark session used by the streaming pipeline.
+    Create Spark session for the streaming pipeline.
     """
 
     spark = (
         SparkSession.builder
-        .appName("AdaptiveUPIFraudStreaming")
-        .master("local[*]")
-        .config("spark.jars.packages", KAFKA_PACKAGE)
-        .config("spark.sql.adaptive.enabled", "false")
-        .config("spark.sql.shuffle.partitions", "8")
+        .appName(
+            "AdaptiveUPIFraudStreaming"
+        )
+        .master("local[2]")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
         .config(
-            "spark.sql.streaming.forceDeleteTempCheckpointLocation",
+            "spark.jars.packages",
+            KAFKA_PACKAGE,
+        )
+        .config(
+            "spark.sql.adaptive.enabled",
+            "false",
+        )
+        .config(
+            "spark.sql.shuffle.partitions",
+            "8",
+        )
+        .config(
+            "spark.sql.streaming."
+            "forceDeleteTempCheckpointLocation",
             "true",
         )
         .getOrCreate()
@@ -62,7 +94,9 @@ def create_spark() -> SparkSession:
 
     spark.sparkContext.setLogLevel("WARN")
 
-    print("Spark session created successfully.")
+    print(
+        "Spark session created successfully."
+    )
 
     return spark
 
@@ -77,7 +111,7 @@ def read_kafka_stream(
     topic: str,
 ) -> DataFrame:
     """
-    Read raw messages from Kafka.
+    Read raw transactions from Kafka.
     """
 
     print("Connecting to Kafka...")
@@ -104,7 +138,9 @@ def read_kafka_stream(
         .load()
     )
 
-    print("Kafka source created successfully.")
+    print(
+        "Kafka source created successfully."
+    )
 
     return raw_stream
 
@@ -152,8 +188,8 @@ def parse_transactions(
     raw_stream: DataFrame,
 ) -> DataFrame:
     """
-    Convert Kafka binary values into structured
-    transaction records.
+    Convert Kafka binary values into
+    structured transaction records.
     """
 
     parsed_stream = (
@@ -167,7 +203,9 @@ def parse_transactions(
                 TRANSACTION_SCHEMA,
             ).alias("transaction")
         )
-        .select("transaction.*")
+        .select(
+            "transaction.*"
+        )
     )
 
     return parsed_stream
@@ -181,25 +219,30 @@ def validate_transactions(
     parsed_stream: DataFrame,
 ) -> DataFrame:
     """
-    Remove invalid transaction records.
+    Remove invalid transactions.
     """
 
     validated_stream = (
         parsed_stream
         .filter(
-            F.col("transaction_id").isNotNull()
+            F.col("transaction_id")
+            .isNotNull()
         )
         .filter(
-            F.col("card_id").isNotNull()
+            F.col("card_id")
+            .isNotNull()
         )
         .filter(
-            F.col("merchant_id").isNotNull()
+            F.col("merchant_id")
+            .isNotNull()
         )
         .filter(
-            F.col("amount").isNotNull()
+            F.col("amount")
+            .isNotNull()
         )
         .filter(
-            F.col("event_time").isNotNull()
+            F.col("event_time")
+            .isNotNull()
         )
         .filter(
             F.col("amount") >= 0
@@ -217,14 +260,16 @@ def build_window_features(
     validated_stream: DataFrame,
 ) -> DataFrame:
     """
-    Build event-time fraud detection features.
+    Build real-time event-time fraud features.
 
     Watermark:
         10 minutes
 
-    Main event-time window:
+    Window:
         10 minutes
-        sliding every 1 minute
+
+    Slide:
+        1 minute
 
     Features:
         transaction_count_5m
@@ -232,17 +277,6 @@ def build_window_features(
         transaction_count_10m
         transaction_amount_10m
         unique_merchants_10m
-
-    The 5-minute features represent the final 5 minutes
-    of each 10-minute event-time window.
-
-    Example:
-
-        10-minute window:
-            10:00 -> 10:10
-
-        5-minute portion:
-            10:05 -> 10:10
     """
 
     print(
@@ -262,7 +296,7 @@ def build_window_features(
     )
 
     # --------------------------------------------------------
-    # CREATE ONE 10-MINUTE SLIDING EVENT-TIME WINDOW
+    # 10-MINUTE SLIDING WINDOW
     # --------------------------------------------------------
 
     windowed_stream = (
@@ -278,33 +312,16 @@ def build_window_features(
     )
 
     # --------------------------------------------------------
-    # DETERMINE THE LAST 5 MINUTES
-    # --------------------------------------------------------
-    #
-    # A 10-minute window:
-    #
-    #       start                 end
-    #         |---------------------|
-    #         0         5           10 min
-    #
-    # The last 5 minutes are:
-    #
-    #                   |-----------|
-    #                   5           10 min
-    #
-    # We compare event_time with:
-    #
-    # window_start + 5 minutes
-    #
-    # Using Unix seconds here makes the comparison
-    # reliable across Spark/Python versions.
+    # LAST 5 MINUTES OF EACH 10-MINUTE WINDOW
     # --------------------------------------------------------
 
     five_minute_condition = (
         F.col("event_time").cast("long")
         >=
         (
-            F.col("time_window.start").cast("long")
+            F.col(
+                "time_window.start"
+            ).cast("long")
             + F.lit(300)
         )
     )
@@ -321,9 +338,9 @@ def build_window_features(
         )
         .agg(
 
-            # =================================================
+            # ------------------------------------------------
             # 5-MINUTE FEATURES
-            # =================================================
+            # ------------------------------------------------
 
             F.sum(
                 F.when(
@@ -332,7 +349,9 @@ def build_window_features(
                 ).otherwise(
                     F.lit(0)
                 )
-            ).cast("long").alias(
+            )
+            .cast("long")
+            .alias(
                 "transaction_count_5m"
             ),
 
@@ -343,13 +362,14 @@ def build_window_features(
                 ).otherwise(
                     F.lit(0.0)
                 )
-            ).alias(
+            )
+            .alias(
                 "transaction_amount_5m"
             ),
 
-            # =================================================
+            # ------------------------------------------------
             # 10-MINUTE FEATURES
-            # =================================================
+            # ------------------------------------------------
 
             F.count("*").alias(
                 "transaction_count_10m"
@@ -370,7 +390,7 @@ def build_window_features(
     )
 
     # --------------------------------------------------------
-    # FINAL OUTPUT COLUMNS
+    # FINAL OUTPUT
     # --------------------------------------------------------
 
     result = (
@@ -428,32 +448,389 @@ def build_window_features(
 
 
 # ============================================================
-# PREVIOUS TRANSACTION FEATURE
+# PREVIOUS TRANSACTION STATE
+# ============================================================
+
+# State is stored as:
+#
+# (
+#     previous_event_times
+# )
+#
+# Example:
+#
+# CARD001
+#     [
+#         10:00,
+#         10:03,
+#         10:07
+#     ]
+#
+# We retain the latest 1000 event timestamps per card.
+#
+# This gives the stateful processor enough history to
+# calculate previous transactions even when events arrive
+# somewhat out of order.
+
+STATE_SCHEMA = StructType(
+    [
+        StructField(
+            "event_times",
+            ArrayType(
+                TimestampType(),
+                containsNull=False,
+            ),
+            True,
+        ),
+    ]
+)
+
+
+# ============================================================
+# PREVIOUS TRANSACTION OUTPUT SCHEMA
+# ============================================================
+
+PREVIOUS_OUTPUT_SCHEMA = StructType(
+    [
+        StructField(
+            "transaction_id",
+            StringType(),
+            False,
+        ),
+        StructField(
+            "card_id",
+            StringType(),
+            False,
+        ),
+        StructField(
+            "merchant_id",
+            StringType(),
+            False,
+        ),
+        StructField(
+            "amount",
+            DoubleType(),
+            False,
+        ),
+        StructField(
+            "event_time",
+            TimestampType(),
+            False,
+        ),
+        StructField(
+            "previous_transaction_time",
+            TimestampType(),
+            True,
+        ),
+        StructField(
+            "time_since_previous_transaction",
+            DoubleType(),
+            True,
+        ),
+    ]
+)
+
+
+# ============================================================
+# STATEFUL PREVIOUS TRANSACTION FUNCTION
+# ============================================================
+
+def previous_transaction_state_function(
+    key,
+    pdf_iter: Iterator[pd.DataFrame],
+    state,
+):
+    """
+    Stateful per-card previous transaction calculation.
+
+    Each card_id is one state group.
+
+    For every transaction:
+
+        previous_transaction_time
+        time_since_previous_transaction
+
+    are calculated from event_time.
+
+    State keeps a rolling history of event timestamps.
+    """
+
+    # --------------------------------------------------------
+    # COLLECT ALL DATA FOR THIS CARD IN THIS MICRO-BATCH
+    # --------------------------------------------------------
+
+    frames = []
+
+    for pdf in pdf_iter:
+
+        if pdf is not None and not pdf.empty:
+            frames.append(pdf)
+
+    # --------------------------------------------------------
+    # NO NEW DATA
+    # --------------------------------------------------------
+
+    if not frames:
+        return
+
+    batch_pdf = pd.concat(
+        frames,
+        ignore_index=True,
+    )
+
+    # --------------------------------------------------------
+    # NORMALIZE EVENT TIME
+    # --------------------------------------------------------
+
+    batch_pdf["event_time"] = pd.to_datetime(
+        batch_pdf["event_time"],
+        errors="coerce",
+    )
+
+    batch_pdf = batch_pdf.dropna(
+        subset=["event_time"]
+    )
+
+    if batch_pdf.empty:
+        return
+
+    # --------------------------------------------------------
+    # SORT TRANSACTIONS BY EVENT TIME
+    # --------------------------------------------------------
+
+    batch_pdf = batch_pdf.sort_values(
+        by=[
+            "event_time",
+            "transaction_id",
+        ],
+        kind="mergesort",
+    )
+
+    # --------------------------------------------------------
+    # LOAD EXISTING STATE
+    # --------------------------------------------------------
+
+    history = []
+
+    if state.exists:
+
+        current_state = state.get()
+
+        if (
+            current_state is not None
+            and len(current_state) > 0
+            and current_state[0] is not None
+        ):
+            history = list(
+                current_state[0]
+            )
+
+    # --------------------------------------------------------
+    # NORMALIZE STATE TIMESTAMPS
+    # --------------------------------------------------------
+
+    normalized_history = []
+
+    for value in history:
+
+        timestamp = pd.Timestamp(
+            value
+        ).to_pydatetime()
+
+        normalized_history.append(
+            timestamp
+        )
+
+    history = normalized_history
+
+    # --------------------------------------------------------
+    # CALCULATE PREVIOUS TRANSACTION
+    # --------------------------------------------------------
+
+    output_rows = []
+
+    for _, row in batch_pdf.iterrows():
+
+        current_time = pd.Timestamp(
+            row["event_time"]
+        ).to_pydatetime()
+
+        # ----------------------------------------------------
+        # FIND MOST RECENT EVENT BEFORE CURRENT EVENT
+        # ----------------------------------------------------
+
+        previous_candidates = [
+            timestamp
+            for timestamp in history
+            if timestamp < current_time
+        ]
+
+        if previous_candidates:
+
+            previous_time = max(
+                previous_candidates
+            )
+
+            difference_seconds = (
+                current_time
+                - previous_time
+            ).total_seconds()
+
+        else:
+
+            previous_time = None
+            difference_seconds = None
+
+        # ----------------------------------------------------
+        # CREATE OUTPUT ROW
+        # ----------------------------------------------------
+
+        output_rows.append(
+            {
+                "transaction_id": str(
+                    row["transaction_id"]
+                ),
+                "card_id": str(
+                    row["card_id"]
+                ),
+                "merchant_id": str(
+                    row["merchant_id"]
+                ),
+                "amount": float(
+                    row["amount"]
+                ),
+                "event_time": current_time,
+                "previous_transaction_time":
+                    previous_time,
+                "time_since_previous_transaction":
+                    (
+                        float(
+                            difference_seconds
+                        )
+                        if difference_seconds
+                        is not None
+                        else None
+                    ),
+            }
+        )
+
+        # ----------------------------------------------------
+        # ADD CURRENT EVENT TO STATE HISTORY
+        # ----------------------------------------------------
+
+        history.append(
+            current_time
+        )
+
+        # Keep history sorted.
+        history.sort()
+
+        # Keep only the latest 1000 timestamps.
+        if len(history) > 1000:
+            history = history[-1000:]
+
+    # --------------------------------------------------------
+    # UPDATE STATE
+    # --------------------------------------------------------
+
+    state.update(
+        (
+            history,
+        )
+    )
+
+    # --------------------------------------------------------
+    # RETURN CURRENT BATCH OUTPUT
+    # --------------------------------------------------------
+
+    if output_rows:
+
+        yield pd.DataFrame(
+            output_rows,
+            columns=[
+                "transaction_id",
+                "card_id",
+                "merchant_id",
+                "amount",
+                "event_time",
+                "previous_transaction_time",
+                "time_since_previous_transaction",
+            ],
+        )
+
+
+# ============================================================
+# BUILD PREVIOUS TRANSACTION STREAM
 # ============================================================
 
 def calculate_previous_transaction_features(
     validated_stream: DataFrame,
-    previous_output: str,
-    previous_checkpoint: str,
-):
+) -> DataFrame:
     """
-    Previous-transaction feature implementation.
+    Build stateful previous-transaction features.
 
-    Currently disabled.
-
-    The batch implementation of
-    time_since_previous_transaction has been completed
-    and verified separately.
-
-    A robust stateful streaming implementation will be
-    handled as a separate step.
+    This is a genuine Structured Streaming stateful
+    operation using applyInPandasWithState.
     """
 
     print(
-        "Previous-transaction feature is currently disabled."
+        "Building stateful previous-transaction features..."
     )
 
-    return None
+    previous_features = (
+        validated_stream
+        .groupBy("card_id")
+        .applyInPandasWithState(
+            previous_transaction_state_function,
+            outputStructType=PREVIOUS_OUTPUT_SCHEMA,
+            stateStructType=STATE_SCHEMA,
+            outputMode="Update",
+            timeoutConf=GroupStateTimeout.NoTimeout,
+        )
+    )
+
+    return previous_features
+
+
+# ============================================================
+# WRITE PREVIOUS TRANSACTION BATCH
+# ============================================================
+
+def write_previous_transaction_batch(
+    batch_df: DataFrame,
+    batch_id: int,
+    output_path: str,
+):
+    """
+    Write stateful previous-transaction output.
+
+    applyInPandasWithState uses Update mode.
+    Therefore we use foreachBatch to append the
+    resulting records to Parquet.
+
+    NOTE:
+        Do NOT call batch_df.isEmpty() here.
+        isEmpty() triggers another Spark action and can
+        cause an additional Python worker execution.
+    """
+
+    print(
+        f"Writing previous-transaction batch "
+        f"{batch_id}..."
+    )
+
+    (
+        batch_df
+        .write
+        .mode("append")
+        .format("parquet")
+        .save(output_path)
+    )
+
+    print(
+        f"Previous-transaction batch "
+        f"{batch_id} written."
+    )
 
 
 # ============================================================
@@ -469,72 +846,42 @@ def run_streaming(
     previous_checkpoint: str,
 ):
     """
-    Start the Spark Structured Streaming pipeline.
+    Start the complete Spark Structured Streaming
+    processing layer.
 
-    Current active pipeline:
-
+    Query 1:
         Kafka
           ↓
-        JSON parsing
+        JSON
           ↓
         Validation
           ↓
-        Event-time processing
+        Watermark
           ↓
-        10-minute watermark
+        5m / 10m windows
           ↓
-        10-minute sliding window
+        Parquet
+
+    Query 2:
+        Kafka
           ↓
-        ┌─────────────────────────────┐
-        │                             │
-        ▼                             ▼
-    Last 5 minutes             Full 10 minutes
-        │                             │
-        └──────────────┬──────────────┘
-                       ↓
-                  Feature output
-                       ↓
-                    Parquet
+        JSON
+          ↓
+        Validation
+          ↓
+        Stateful card_id processing
+          ↓
+        previous_transaction_time
+          ↓
+        time_since_previous_transaction
+          ↓
+        Parquet
     """
 
     spark = create_spark()
 
     # --------------------------------------------------------
-    # READ KAFKA
-    # --------------------------------------------------------
-
-    raw_stream = read_kafka_stream(
-        spark,
-        bootstrap_servers,
-        topic,
-    )
-
-    # --------------------------------------------------------
-    # PARSE JSON
-    # --------------------------------------------------------
-
-    parsed_stream = parse_transactions(
-        raw_stream
-    )
-
-    # --------------------------------------------------------
-    # VALIDATE
-    # --------------------------------------------------------
-
-    validated_stream = validate_transactions(
-        parsed_stream
-    )
-
-    # --------------------------------------------------------
-    # BUILD WINDOW FEATURES
-    # --------------------------------------------------------
-
-    window_features = build_window_features(
-        validated_stream
-    )
-
-    # --------------------------------------------------------
-    # CREATE OUTPUT DIRECTORIES
+    # CREATE DIRECTORIES
     # --------------------------------------------------------
 
     os.makedirs(
@@ -547,9 +894,54 @@ def run_streaming(
         exist_ok=True,
     )
 
-    # --------------------------------------------------------
-    # START WINDOW FEATURE QUERY
-    # --------------------------------------------------------
+    os.makedirs(
+        previous_output,
+        exist_ok=True,
+    )
+
+    os.makedirs(
+        previous_checkpoint,
+        exist_ok=True,
+    )
+
+    # ========================================================
+    # QUERY 1
+    # WINDOW FEATURES
+    # ========================================================
+
+    print(
+        "\n=========================================="
+    )
+
+    print(
+        "CREATING WINDOW FEATURE STREAM"
+    )
+
+    print(
+        "=========================================="
+    )
+
+    raw_stream_window = read_kafka_stream(
+        spark,
+        bootstrap_servers,
+        topic,
+    )
+
+    parsed_stream_window = (
+        parse_transactions(
+            raw_stream_window
+        )
+    )
+
+    validated_stream_window = (
+        validate_transactions(
+            parsed_stream_window
+        )
+    )
+
+    window_features = build_window_features(
+        validated_stream_window
+    )
 
     print(
         "\nStarting window feature query..."
@@ -578,27 +970,101 @@ def run_streaming(
         "Window feature query started."
     )
 
-    # --------------------------------------------------------
-    # PREVIOUS TRANSACTION QUERY
-    #
-    # TEMPORARILY DISABLED
-    # --------------------------------------------------------
-
-    print(
-        "\nPrevious-transaction query is "
-        "temporarily disabled."
-    )
-
-    # --------------------------------------------------------
-    # STATUS
-    # --------------------------------------------------------
+    # ========================================================
+    # QUERY 2
+    # PREVIOUS TRANSACTION STATE
+    # ========================================================
 
     print(
         "\n=========================================="
     )
 
     print(
-        "Spark streaming query started."
+        "CREATING PREVIOUS-TRANSACTION STREAM"
+    )
+
+    print(
+        "=========================================="
+    )
+
+    # IMPORTANT:
+    # This is a separate Kafka streaming source/query.
+    # Spark documentation recommends separate queries
+    # when multiple stateful operations are required.
+
+    raw_stream_previous = read_kafka_stream(
+        spark,
+        bootstrap_servers,
+        topic,
+    )
+
+    parsed_stream_previous = (
+        parse_transactions(
+            raw_stream_previous
+        )
+    )
+
+    validated_stream_previous = (
+        validate_transactions(
+            parsed_stream_previous
+        )
+    )
+
+    previous_features = (
+        calculate_previous_transaction_features(
+            validated_stream_previous
+        )
+    )
+
+    print(
+        "\nStarting previous-transaction query..."
+    )
+
+    previous_query = (
+        previous_features
+        .writeStream
+        .outputMode("update")
+        .option(
+            "checkpointLocation",
+            previous_checkpoint,
+        )
+        .trigger(
+            processingTime="10 seconds"
+        )
+        .foreachBatch(
+            lambda batch_df, batch_id:
+                write_previous_transaction_batch(
+                    batch_df,
+                    batch_id,
+                    previous_output,
+                )
+        )
+        .start()
+    )
+
+    print(
+        "Previous-transaction query started."
+    )
+
+    # ========================================================
+    # FINAL STATUS
+    # ========================================================
+
+    print(
+        "\n=========================================="
+    )
+
+    print(
+        "COMPLETE SPARK STREAMING PIPELINE"
+    )
+
+    print(
+        "=========================================="
+    )
+
+    print(
+        f"Kafka bootstrap: "
+        f"{bootstrap_servers}"
     )
 
     print(
@@ -606,19 +1072,15 @@ def run_streaming(
     )
 
     print(
-        f"Window output: {output}"
+        "\nWINDOW FEATURES"
     )
 
     print(
-        f"Checkpoint: {checkpoint}"
+        "5-minute features: ENABLED"
     )
 
     print(
-        "5-minute feature: ENABLED"
-    )
-
-    print(
-        "10-minute feature: ENABLED"
+        "10-minute features: ENABLED"
     )
 
     print(
@@ -630,24 +1092,67 @@ def run_streaming(
     )
 
     print(
-        "Previous-transaction feature: DISABLED"
+        "Sliding window: 10 minutes / 1 minute"
     )
 
     print(
-        "Waiting for Kafka transactions..."
+        "\nPREVIOUS TRANSACTION FEATURES"
+    )
+
+    print(
+        "Stateful processing: ENABLED"
+    )
+
+    print(
+        "previous_transaction_time: ENABLED"
+    )
+
+    print(
+        "time_since_previous_transaction: ENABLED"
+    )
+
+    print(
+        "Per-card state: ENABLED"
+    )
+
+    print(
+        "\nOUTPUTS"
+    )
+
+    print(
+        f"Window output: {output}"
+    )
+
+    print(
+        f"Previous transaction output: "
+        f"{previous_output}"
+    )
+
+    print(
+        f"Window checkpoint: {checkpoint}"
+    )
+
+    print(
+        f"Previous checkpoint: "
+        f"{previous_checkpoint}"
+    )
+
+    print(
+        "\nWaiting for Kafka transactions..."
     )
 
     print(
         "=========================================="
     )
 
-    # --------------------------------------------------------
-    # WAIT FOR STREAMING QUERY
-    # --------------------------------------------------------
+    # ========================================================
+    # WAIT
+    # ========================================================
 
     try:
 
-        window_query.awaitTermination()
+        # Wait for either query to terminate.
+        spark.streams.awaitAnyTermination()
 
     except KeyboardInterrupt:
 
@@ -656,6 +1161,22 @@ def run_streaming(
         )
 
     finally:
+
+        print(
+            "Stopping streaming queries..."
+        )
+
+        try:
+            if window_query.isActive:
+                window_query.stop()
+        except Exception:
+            pass
+
+        try:
+            if previous_query.isActive:
+                previous_query.stop()
+        except Exception:
+            pass
 
         print(
             "Stopping Spark session..."
@@ -692,21 +1213,27 @@ def main():
     parser.add_argument(
         "--output",
         default=DEFAULT_OUTPUT,
-        help="Streaming Parquet output directory",
+        help=(
+            "Streaming window feature "
+            "Parquet output directory"
+        ),
     )
 
     parser.add_argument(
         "--checkpoint",
         default=DEFAULT_CHECKPOINT,
-        help="Streaming checkpoint directory",
+        help=(
+            "Window feature checkpoint "
+            "directory"
+        ),
     )
 
     parser.add_argument(
         "--previous-output",
         default=DEFAULT_PREVIOUS_OUTPUT,
         help=(
-            "Previous transaction output directory "
-            "(currently disabled)"
+            "Previous transaction Parquet "
+            "output directory"
         ),
     )
 
@@ -714,8 +1241,8 @@ def main():
         "--previous-checkpoint",
         default=DEFAULT_PREVIOUS_CHECKPOINT,
         help=(
-            "Previous transaction checkpoint "
-            "(currently disabled)"
+            "Previous transaction state "
+            "checkpoint directory"
         ),
     )
 
@@ -737,4 +1264,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
