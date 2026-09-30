@@ -1,13 +1,12 @@
 import argparse
 import os
 import sys
+from typing import Iterator
 
 # Ensure Spark uses the same Python interpreter as the driver.
-# This is especially important on Windows when using a virtual environment.
+# Important on Windows when using a virtual environment.
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-
-from typing import Iterator
 
 import pandas as pd
 
@@ -51,8 +50,12 @@ DEFAULT_PREVIOUS_OUTPUT = (
 
 DEFAULT_PREVIOUS_CHECKPOINT = (
     "spark/output/streaming/"
-    "previous_transaction_checkpoint_v3"
+    "previous_transaction_checkpoint_v4"
 )
+
+# Small batches make the stateful operation easier to run
+# reliably on a local Windows development environment.
+MAX_OFFSETS_PER_TRIGGER = 10
 
 
 # ============================================================
@@ -70,8 +73,14 @@ def create_spark() -> SparkSession:
             "AdaptiveUPIFraudStreaming"
         )
         .master("local[2]")
-        .config("spark.driver.host", "127.0.0.1")
-        .config("spark.driver.bindAddress", "127.0.0.1")
+        .config(
+            "spark.driver.host",
+            "127.0.0.1",
+        )
+        .config(
+            "spark.driver.bindAddress",
+            "127.0.0.1",
+        )
         .config(
             "spark.jars.packages",
             KAFKA_PACKAGE,
@@ -82,7 +91,7 @@ def create_spark() -> SparkSession:
         )
         .config(
             "spark.sql.shuffle.partitions",
-            "8",
+            "2",
         )
         .config(
             "spark.sql.streaming."
@@ -96,6 +105,10 @@ def create_spark() -> SparkSession:
 
     print(
         "Spark session created successfully."
+    )
+
+    print(
+        f"Spark version: {spark.version}"
     )
 
     return spark
@@ -112,6 +125,9 @@ def read_kafka_stream(
 ) -> DataFrame:
     """
     Read raw transactions from Kafka.
+
+    maxOffsetsPerTrigger is deliberately kept small
+    for reliable local Windows stateful processing.
     """
 
     print("Connecting to Kafka...")
@@ -129,7 +145,11 @@ def read_kafka_stream(
         )
         .option(
             "startingOffsets",
-            "latest",
+            "earliest",
+        )
+        .option(
+            "maxOffsetsPerTrigger",
+            MAX_OFFSETS_PER_TRIGGER,
         )
         .option(
             "failOnDataLoss",
@@ -140,6 +160,11 @@ def read_kafka_stream(
 
     print(
         "Kafka source created successfully."
+    )
+
+    print(
+        f"Maximum Kafka offsets per trigger: "
+        f"{MAX_OFFSETS_PER_TRIGGER}"
     )
 
     return raw_stream
@@ -451,26 +476,27 @@ def build_window_features(
 # PREVIOUS TRANSACTION STATE
 # ============================================================
 
-# State is stored as:
+# For each card_id, Spark maintains a rolling list
+# of recent event timestamps.
 #
-# (
-#     previous_event_times
-# )
+# This allows the system to determine:
 #
-# Example:
+#     previous_transaction_time
 #
-# CARD001
-#     [
-#         10:00,
-#         10:03,
-#         10:07
-#     ]
+# and:
 #
-# We retain the latest 1000 event timestamps per card.
+#     time_since_previous_transaction
 #
-# This gives the stateful processor enough history to
-# calculate previous transactions even when events arrive
-# somewhat out of order.
+# for every new transaction.
+#
+# A maximum of 100 timestamps is retained per card.
+#
+# This is intentionally smaller than the previous 1000-entry
+# state to reduce Python worker/state serialization overhead
+# during local Windows testing.
+
+MAX_STATE_HISTORY = 100
+
 
 STATE_SCHEMA = StructType(
     [
@@ -552,18 +578,21 @@ def previous_transaction_state_function(
 
     are calculated from event_time.
 
-    State keeps a rolling history of event timestamps.
+    State keeps a rolling history of recent event timestamps.
     """
 
     # --------------------------------------------------------
-    # COLLECT ALL DATA FOR THIS CARD IN THIS MICRO-BATCH
+    # COLLECT CURRENT MICRO-BATCH
     # --------------------------------------------------------
 
     frames = []
 
     for pdf in pdf_iter:
 
-        if pdf is not None and not pdf.empty:
+        if (
+            pdf is not None
+            and not pdf.empty
+        ):
             frames.append(pdf)
 
     # --------------------------------------------------------
@@ -595,7 +624,7 @@ def previous_transaction_state_function(
         return
 
     # --------------------------------------------------------
-    # SORT TRANSACTIONS BY EVENT TIME
+    # SORT CURRENT BATCH
     # --------------------------------------------------------
 
     batch_pdf = batch_pdf.sort_values(
@@ -614,7 +643,7 @@ def previous_transaction_state_function(
 
     if state.exists:
 
-        current_state = state.get()
+        current_state = state.get
 
         if (
             current_state is not None
@@ -642,6 +671,15 @@ def previous_transaction_state_function(
         )
 
     history = normalized_history
+
+    # Keep state sorted.
+    history.sort()
+
+    # Keep state bounded.
+    if len(history) > MAX_STATE_HISTORY:
+        history = history[
+            -MAX_STATE_HISTORY:
+        ]
 
     # --------------------------------------------------------
     # CALCULATE PREVIOUS TRANSACTION
@@ -690,18 +728,24 @@ def previous_transaction_state_function(
                 "transaction_id": str(
                     row["transaction_id"]
                 ),
+
                 "card_id": str(
                     row["card_id"]
                 ),
+
                 "merchant_id": str(
                     row["merchant_id"]
                 ),
+
                 "amount": float(
                     row["amount"]
                 ),
+
                 "event_time": current_time,
+
                 "previous_transaction_time":
                     previous_time,
+
                 "time_since_previous_transaction":
                     (
                         float(
@@ -715,19 +759,23 @@ def previous_transaction_state_function(
         )
 
         # ----------------------------------------------------
-        # ADD CURRENT EVENT TO STATE HISTORY
+        # ADD CURRENT EVENT TO STATE
         # ----------------------------------------------------
 
         history.append(
             current_time
         )
 
-        # Keep history sorted.
         history.sort()
 
-        # Keep only the latest 1000 timestamps.
-        if len(history) > 1000:
-            history = history[-1000:]
+        # ----------------------------------------------------
+        # KEEP STATE SMALL
+        # ----------------------------------------------------
+
+        if len(history) > MAX_STATE_HISTORY:
+            history = history[
+                -MAX_STATE_HISTORY:
+            ]
 
     # --------------------------------------------------------
     # UPDATE STATE
@@ -767,10 +815,9 @@ def calculate_previous_transaction_features(
     validated_stream: DataFrame,
 ) -> DataFrame:
     """
-    Build stateful previous-transaction features.
-
-    This is a genuine Structured Streaming stateful
-    operation using applyInPandasWithState.
+    Build genuine Structured Streaming stateful
+    previous-transaction features using
+    applyInPandasWithState.
     """
 
     print(
@@ -804,19 +851,16 @@ def write_previous_transaction_batch(
     """
     Write stateful previous-transaction output.
 
-    applyInPandasWithState uses Update mode.
-    Therefore we use foreachBatch to append the
-    resulting records to Parquet.
+    Update-mode stateful output is written using
+    foreachBatch.
 
-    NOTE:
-        Do NOT call batch_df.isEmpty() here.
-        isEmpty() triggers another Spark action and can
-        cause an additional Python worker execution.
+    No isEmpty() call is used because that would
+    trigger another Spark action.
     """
 
     print(
-        f"Writing previous-transaction batch "
-        f"{batch_id}..."
+        f"\nWriting previous-transaction "
+        f"batch {batch_id}..."
     )
 
     (
@@ -829,7 +873,7 @@ def write_previous_transaction_batch(
 
     print(
         f"Previous-transaction batch "
-        f"{batch_id} written."
+        f"{batch_id} written successfully."
     )
 
 
@@ -869,7 +913,7 @@ def run_streaming(
           ↓
         Validation
           ↓
-        Stateful card_id processing
+        Per-card state
           ↓
         previous_transaction_time
           ↓
@@ -905,8 +949,7 @@ def run_streaming(
     )
 
     # ========================================================
-    # QUERY 1
-    # WINDOW FEATURES
+    # QUERY 1 — WINDOW FEATURES
     # ========================================================
 
     print(
@@ -971,8 +1014,7 @@ def run_streaming(
     )
 
     # ========================================================
-    # QUERY 2
-    # PREVIOUS TRANSACTION STATE
+    # QUERY 2 — STATEFUL PREVIOUS TRANSACTION
     # ========================================================
 
     print(
@@ -987,10 +1029,10 @@ def run_streaming(
         "=========================================="
     )
 
-    # IMPORTANT:
-    # This is a separate Kafka streaming source/query.
-    # Spark documentation recommends separate queries
-    # when multiple stateful operations are required.
+    # A separate Kafka streaming query is used.
+    # This prevents the window aggregation and
+    # previous-transaction state operation from
+    # being combined into one stateful query.
 
     raw_stream_previous = read_kafka_stream(
         spark,
@@ -1047,7 +1089,7 @@ def run_streaming(
     )
 
     # ========================================================
-    # FINAL STATUS
+    # STATUS
     # ========================================================
 
     print(
@@ -1069,6 +1111,11 @@ def run_streaming(
 
     print(
         f"Kafka topic: {topic}"
+    )
+
+    print(
+        f"Kafka max offsets/trigger: "
+        f"{MAX_OFFSETS_PER_TRIGGER}"
     )
 
     print(
@@ -1104,6 +1151,10 @@ def run_streaming(
     )
 
     print(
+        "applyInPandasWithState: ENABLED"
+    )
+
+    print(
         "previous_transaction_time: ENABLED"
     )
 
@@ -1113,6 +1164,11 @@ def run_streaming(
 
     print(
         "Per-card state: ENABLED"
+    )
+
+    print(
+        f"Maximum state history/card: "
+        f"{MAX_STATE_HISTORY}"
     )
 
     print(
@@ -1151,7 +1207,7 @@ def run_streaming(
 
     try:
 
-        # Wait for either query to terminate.
+        # Wait until either streaming query terminates.
         spark.streams.awaitAnyTermination()
 
     except KeyboardInterrupt:
