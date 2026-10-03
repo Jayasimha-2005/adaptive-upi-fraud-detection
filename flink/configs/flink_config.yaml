@@ -1,0 +1,12 @@
+job:
+  name: adaptive-fraud-flink
+  parallelism: 1
+
+streaming:
+  out_of_orderness_seconds: 30
+  window_minutes: 10
+  slide_minutes: 5
+
+output:
+  batch_dir: flink/output/batch
+  streaming_dir: flink/output/streaming

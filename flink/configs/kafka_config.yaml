@@ -1,0 +1,4 @@
+bootstrap_servers: localhost:9092
+input_topic: fraud-transactions
+output_topic: fraud-features
+consumer_group: flink-fraud-processing

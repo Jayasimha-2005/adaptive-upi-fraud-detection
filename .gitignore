@@ -74,3 +74,27 @@ spark/benchmarks/results/
 spark/test_stream_checkpoint/
 spark/streaming/stream_processor_backup.py
 venv311/
+# Python environments
+flink_venv/
+flink_py311/
+flink_python_wrapper/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Flink generated output
+flink/output/
+
+# Local logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
