@@ -1,0 +1,2 @@
+mode,records,processing_seconds,throughput_records_per_second,micro_batches,average_records_per_micro_batch
+streaming,1000,11.710268269000153,85.39514014783387,4,250.0
