@@ -1,0 +1,6 @@
+apache-flink==2.3.0
+pandas>=2.0,<3.0
+pyarrow>=14.0
+pyyaml>=6.0
+kafka-python>=2.0
+pytest>=8.0
