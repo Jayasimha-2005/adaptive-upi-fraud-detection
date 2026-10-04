@@ -32,8 +32,17 @@ CHUNK_SIZE = 50_000
 
 
 def main():
-    tx = ROOT / "Datasets" / "IEEE CIS" / "train_transaction.csv"
-    identity = ROOT / "Datasets" / "IEEE CIS" / "train_identity.csv"
+    dataset_dir = Path(
+        "/mnt/c/Users/HADASSAH KIRAN/Downloads/Datasets/Datasets/"
+        "IEEE CIS-20260829T103704Z-1-001/IEEE CIS"
+    )
+    tx = dataset_dir / "train_transaction.csv"
+    identity = dataset_dir / "train_identity.csv"
+
+    if not tx.is_file():
+        raise FileNotFoundError(f"Transaction dataset not found: {tx}")
+    if not identity.is_file():
+        raise FileNotFoundError(f"Identity dataset not found: {identity}")
 
     print("[Flink Batch] Loading IEEE-CIS...")
     print(f"[Flink Batch] Chunk size: {CHUNK_SIZE:,}")

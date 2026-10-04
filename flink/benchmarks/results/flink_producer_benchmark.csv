@@ -1,0 +1,4 @@
+benchmark,input_records,elapsed_seconds,producer_throughput_records_per_second,target_rate_records_per_second
+kafka_producer,1000,2.006,498.40,500
+kafka_producer,5000,10.001,499.96,500
+kafka_producer,10000,20.001,499.98,500

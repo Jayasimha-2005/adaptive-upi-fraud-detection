@@ -20,7 +20,7 @@ if str(ROOT) not in sys.path:
 # 2. PYFLINK PYTHON ENVIRONMENT
 # ============================================================
 
-PYTHON_EXE = os.path.realpath(os.environ.get("VIRTUAL_ENV", "") + "/bin/python")
+PYTHON_EXE = sys.executable
 
 os.environ["PYFLINK_PYTHON"] = PYTHON_EXE
 os.environ["PYFLINK_CLIENT_EXECUTABLE"] = PYTHON_EXE
@@ -31,16 +31,16 @@ os.environ["PYTHON_EXECUTABLE"] = PYTHON_EXE
 # 3. KAFKA JAR FILES
 # ============================================================
 
-KAFKA_JAR_DIR = ROOT / "flink" / "jars"
+KAFKA_JAR_DIR = Path.home() / "flink-connectors-22"
 
 KAFKA_CONNECTOR_JAR = (
     KAFKA_JAR_DIR /
-    "flink-connector-kafka-3.3.0-1.20.jar"
+    "flink-connector-kafka-5.0.0-2.2.jar"
 )
 
 KAFKA_CLIENT_JAR = (
     KAFKA_JAR_DIR /
-    "kafka-clients-3.8.1.jar"
+    "kafka-clients-4.2.0.jar"
 )
 
 if not KAFKA_CONNECTOR_JAR.exists():
@@ -81,6 +81,12 @@ from pyflink.common.time import Time
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.datastream.window import SlidingEventTimeWindows
 from pyflink.datastream.functions import AggregateFunction
+from pyflink.datastream.connectors.kafka import (
+    KafkaSink,
+    KafkaRecordSerializationSchema,
+    DeliveryGuarantee,
+)
+from pyflink.common.serialization import SimpleStringSchema
 
 
 # ============================================================
@@ -586,32 +592,13 @@ def main():
     # Add Kafka JARs to Flink classpath
     # --------------------------------------------------------
 
-    connector_uri = (
-        "file:///"
-        + str(KAFKA_CONNECTOR_JAR)
-        .replace("\\", "/")
-    )
+    connector_uri = KAFKA_CONNECTOR_JAR.resolve().as_uri()
+    client_uri = KAFKA_CLIENT_JAR.resolve().as_uri()
+    env.add_jars(connector_uri, client_uri)
 
-    client_uri = (
-        "file:///"
-        + str(KAFKA_CLIENT_JAR)
-        .replace("\\", "/")
-    )
+    print("[Flink] Kafka connector JAR:", KAFKA_CONNECTOR_JAR)
+    print("[Flink] Kafka client JAR:", KAFKA_CLIENT_JAR)
 
-    env.add_jars(connector_uri)
-    env.add_jars(client_uri)
-
-    print(
-        "[Flink] Kafka connector JAR added:"
-    )
-    print(KAFKA_CONNECTOR_JAR)
-
-    print(
-        "[Flink] Kafka client JAR added:"
-    )
-    print(KAFKA_CLIENT_JAR)
-
-    # ========================================================
     # STEP 1: CREATE KAFKA SOURCE
     # ========================================================
 
@@ -795,6 +782,27 @@ def main():
     result_5m.print()
     result_10m.print()
     velocity_result.print()
+
+    serializer = (
+        KafkaRecordSerializationSchema.builder()
+        .set_topic("fraud-features")
+        .set_value_serialization_schema(SimpleStringSchema())
+        .build()
+    )
+
+    kafka_sink = (
+        KafkaSink.builder()
+        .set_bootstrap_servers("localhost:9092")
+        .set_record_serializer(serializer)
+        .set_delivery_guarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+        .build()
+    )
+
+    result_5m.sink_to(kafka_sink).name("5-minute features to Kafka")
+    result_10m.sink_to(kafka_sink).name("10-minute features to Kafka")
+    velocity_result.sink_to(kafka_sink).name("velocity features to Kafka")
+
+    print("[Flink] Feature streams configured for fraud-features.")
 
     # ========================================================
     # STEP 11: EXECUTE

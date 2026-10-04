@@ -20,7 +20,16 @@ if str(ROOT) not in sys.path:
 # 2. PYFLINK PYTHON ENVIRONMENT
 # ============================================================
 
-PYTHON_EXE = os.path.realpath(os.environ.get("VIRTUAL_ENV", "") + "/bin/python")
+PYTHON_EXE = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "flink_py311",
+        "Scripts",
+        "python.exe",
+    )
+)
 
 os.environ["PYFLINK_PYTHON"] = PYTHON_EXE
 os.environ["PYFLINK_CLIENT_EXECUTABLE"] = PYTHON_EXE
