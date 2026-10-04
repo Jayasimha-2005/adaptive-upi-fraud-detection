@@ -4,36 +4,40 @@
 
 **Research Project:** Adaptive Financial Fraud Detection
 **Module:** Apache Spark Processing Layer
+**Role:** Member 2 — Apache Spark
 
 ---
 
 # 1. Executive Summary
 
-Member 2 was responsible for developing the Apache Spark processing layer for the adaptive financial fraud detection system.
+Member 2 was responsible for developing the **Apache Spark processing layer** of the adaptive financial fraud detection system.
 
-The implementation provides two processing paths:
+The module provides two processing paths:
 
-1. **Historical batch processing** of IEEE-CIS transaction and identity data.
-2. **Real-time transaction processing** using Kafka and Spark Structured Streaming.
+1. **Historical batch processing** for large transaction datasets.
+2. **Real-time stream processing** using Apache Kafka and Spark Structured Streaming.
 
-The completed implementation includes:
+The implemented layer includes:
 
 * Spark DataFrame-based batch processing
-* IEEE-CIS transaction and identity integration
-* Historical card-level feature generation
+* IEEE-CIS transaction and identity processing
+* Transaction + identity joining
+* Historical feature engineering
 * Previous-transaction temporal features
 * Kafka integration
 * Spark Structured Streaming
-* JSON transaction parsing and validation
+* JSON parsing and validation
 * Event-time processing
 * Watermarking
 * Sliding 5-minute and 10-minute windows
-* Real-time transaction features
-* Checkpoint recovery
-* Event-time and out-of-order transaction experiments
-* Batch and streaming performance benchmarks
+* Real-time feature generation
+* Stateful previous-transaction processing
+* Checkpointing
+* Out-of-order event testing
+* Performance benchmarking
+* Automated testing
 
-The implementation was developed and tested in a Windows local Spark environment.
+The implementation was developed and tested in a **Windows local Spark environment**.
 
 ---
 
@@ -41,37 +45,41 @@ The implementation was developed and tested in a Windows local Spark environment
 
 > **How can Apache Spark provide a unified framework for large-scale historical fraud analysis and real-time transaction stream processing?**
 
-The implementation investigates whether the same Spark-based processing layer can support both historical transaction processing and continuous transaction-stream feature generation.
+The work investigates how Spark can support both historical and continuous transaction processing using a common processing framework.
 
 ---
 
 # 3. Member 2 Scope
 
-| Component                        | Status                |
-| -------------------------------- | --------------------- |
-| Spark Batch Processing           | ✅ Complete            |
-| IEEE-CIS Transaction Processing  | ✅ Complete            |
-| Transaction + Identity Join      | ✅ Complete            |
-| Historical Feature Engineering   | ✅ Complete            |
-| Previous Transaction — Batch     | ✅ Complete            |
-| Kafka Integration                | ✅ Complete            |
-| Structured Streaming             | ✅ Complete            |
-| JSON Parsing and Validation      | ✅ Complete            |
-| Event-Time Processing            | ✅ Complete            |
-| Watermarking                     | ✅ Complete            |
-| 5-Minute Features                | ✅ Complete            |
-| 10-Minute Features               | ✅ Complete            |
-| Checkpoint Recovery              | ✅ Tested              |
-| Out-of-Order Event Experiment    | ✅ Complete            |
-| Batch Benchmark                  | ✅ Complete            |
-| Streaming Benchmark              | ✅ Complete            |
-| Previous Transaction — Streaming | ⚠️ Limited on Windows |
+| Component                       | Status                 |
+| ------------------------------- | ---------------------- |
+| Spark Batch Processing          | Complete               |
+| IEEE-CIS Transaction Processing | Complete               |
+| IEEE-CIS Identity Processing    | Complete               |
+| Transaction + Identity Join     | Complete               |
+| Historical Feature Engineering  | Complete               |
+| Previous Transaction — Batch    | Complete               |
+| Kafka Integration               | Complete               |
+| Structured Streaming            | Complete               |
+| JSON Parsing                    | Complete               |
+| Transaction Validation          | Complete               |
+| Event-Time Processing           | Complete               |
+| Watermarking                    | Complete               |
+| 5-Minute Features               | Complete               |
+| 10-Minute Features              | Complete               |
+| Sliding Windows                 | Complete               |
+| Stateful Previous Transaction   | Implemented and tested |
+| Checkpointing                   | Tested                 |
+| Out-of-Order Events             | Tested                 |
+| Automated Tests                 | 4/4 Passed             |
+| Batch Benchmark                 | Completed              |
+| Streaming Benchmark             | Completed              |
 
 ---
 
 # 4. System Architecture
 
-## 4.1 Historical Processing
+## 4.1 Historical Batch Path
 
 ```text
 IEEE-CIS Transaction Data
@@ -79,7 +87,7 @@ IEEE-CIS Transaction Data
 IEEE-CIS Identity Data
           |
           v
-     Spark Batch
+      Spark Batch
           |
           v
  Transaction + Identity Join
@@ -91,16 +99,16 @@ IEEE-CIS Identity Data
  Historical Feature Engineering
           |
           v
-      Parquet
+       Parquet
           |
           v
  Downstream ML Pipeline
 ```
 
-## 4.2 Real-Time Processing
+## 4.2 Real-Time Streaming Path
 
 ```text
-Live Transactions
+New Transactions
        |
        v
      Kafka
@@ -109,22 +117,25 @@ Live Transactions
 Spark Structured Streaming
        |
        v
- JSON Parsing
+   JSON Parsing
        |
        v
- Validation
+    Validation
        |
        v
- Event Time
+   Event Time
        |
        v
- Watermark
+   Watermark
        |
        v
-5m / 10m Windows
+Sliding Windows
        |
        v
 Real-Time Features
+       |
+       v
+     Parquet
        |
        v
 Downstream ML Pipeline
@@ -134,22 +145,21 @@ Downstream ML Pipeline
 
 # 5. Implementation Environment
 
-The implementation was developed and tested using:
+| Component          | Configuration        |
+| ------------------ | -------------------- |
+| Operating System   | Windows              |
+| Python             | 3.13.15              |
+| Java               | OpenJDK / Temurin 17 |
+| PySpark            | 3.5.9                |
+| Kafka              | 4.1.0                |
+| Kafka Broker       | `localhost:9092`     |
+| Spark Mode         | `local[2]`           |
+| Kafka Topic        | `fraud-transactions` |
+| Python Environment | `venv`               |
 
-| Component        | Version / Configuration |
-| ---------------- | ----------------------- |
-| Operating System | Windows                 |
-| Python           | 3.13.15                 |
-| Java             | 17                      |
-| PySpark          | 3.5.9                   |
-| Kafka            | 4.1.0                   |
-| Kafka Broker     | `localhost:9092`        |
-| Spark Mode       | `local[*]`              |
-| Kafka Topic      | `fraud-transactions`    |
+The implementation was tested using the project's `venv` environment.
 
-A local Hadoop/Windows helper configuration was also used for Spark execution.
-
-Spark installation was verified using a basic Spark DataFrame execution test.
+The `venv311` directory was not used for the final implementation and is ignored by Git.
 
 ---
 
@@ -164,39 +174,56 @@ Datasets/IEEE CIS/train_transaction.csv
 Datasets/IEEE CIS/train_identity.csv
 ```
 
-The processing flow is:
+Processing flow:
 
 ```text
-train_transaction.csv
-        +
-train_identity.csv
-        |
-        v
+CSV Files
+   |
+   v
 Spark DataFrames
-        |
-        v
+   |
+   v
 Transaction + Identity Join
-        |
-        v
+   |
+   v
 Data Processing
-        |
-        v
-Temporal / Card Features
-        |
-        v
-Aggregation
-        |
-        v
+   |
+   v
+Feature Engineering
+   |
+   v
 Parquet Output
 ```
 
-The raw datasets are not committed to Git because of their large size.
+The raw datasets are stored locally and are not committed to GitHub because of their size.
 
 ---
 
-# 7. Historical Feature Engineering
+# 7. Transaction and Identity Integration
 
-The batch implementation generates card-level historical features.
+The IEEE-CIS dataset contains transaction information and additional identity information.
+
+Spark loads both datasets into DataFrames and combines the relevant records through the transaction identifier.
+
+```text
+Transaction Data
+       +
+Identity Data
+       |
+       v
+Combined Spark DataFrame
+       |
+       v
+Feature Engineering
+```
+
+This produces a richer dataset for downstream fraud-analysis tasks.
+
+---
+
+# 8. Historical Feature Engineering
+
+The batch pipeline generates card-level historical features using information available before the current transaction.
 
 Implemented features include:
 
@@ -208,15 +235,30 @@ card_amount_max_before
 card_fraud_count_before
 ```
 
-These features use the transaction history available before the current transaction.
+For example:
+
+```text
+10:00 → ₹100
+10:02 → ₹250
+10:05 → ₹500
+```
+
+For the 10:05 transaction:
+
+```text
+Previous transaction count = 2
+Previous amount sum = ₹350
+Previous amount mean = ₹175
+Previous amount maximum = ₹250
+```
+
+This prevents future transaction information from being used when calculating historical features.
 
 ---
 
-# 8. Previous Transaction Feature
+# 9. Previous-Transaction Feature
 
-A temporal feature was implemented to determine the previous transaction for each card.
-
-The implementation generates:
+The batch implementation generates:
 
 ```text
 previous_transaction_time
@@ -226,107 +268,99 @@ time_since_previous_transaction
 Example:
 
 ```text
-CARD123
+CARD100
 
-Transaction 1 → 10:00
-Transaction 2 → 10:02
-Transaction 3 → 10:05
+10:00 → Transaction 1
+10:02 → Transaction 2
+10:04 → Transaction 3
 ```
 
 Result:
 
 ```text
-Transaction 1 → previous = NULL
-Transaction 2 → previous = 10:00
-Transaction 3 → previous = 10:02
+Transaction 1 → Previous = NULL
+
+Transaction 2 → Previous = 10:00
+                 Difference = 120 seconds
+
+Transaction 3 → Previous = 10:02
+                 Difference = 120 seconds
 ```
 
-The feature was verified successfully using the batch pipeline.
-
----
-
-# 9. Batch Processing Verification
-
-The batch pipeline was tested using a smaller dataset subset before larger processing.
-
-A verified output contained:
-
-```text
-card_id   TransactionDT   previous_transaction_time   time_since_previous_transaction
-10023     100169          NULL                         NULL
-10023     179206          100169                      79037.0
-10023     231410          179206                      52204.0
-10023     245681          231410                      14271.0
-```
-
-The resulting data was successfully written and read from Parquet.
+These features can help identify unusually frequent transaction activity.
 
 ---
 
 # 10. Kafka Integration
 
-Kafka was configured as the real-time transaction source.
+Kafka is used as the real-time transaction source.
 
 Configuration:
 
 ```text
 Bootstrap Server: localhost:9092
 Topic: fraud-transactions
-Partitions: 1
-Replication Factor: 1
 ```
 
-Kafka producer testing successfully sent JSON transactions to the topic.
+The Kafka broker was verified locally on port `9092`.
 
-Example transaction structure:
+Transactions are sent as JSON messages.
+
+Example:
 
 ```json
 {
-  "transaction_id": "TX001",
-  "card_id": "CARD123",
-  "merchant_id": "M001",
-  "amount": 500.0,
-  "event_time": "2026-09-24T01:00:00"
+  "transaction_id": "TEST001",
+  "card_id": "CARD100",
+  "merchant_id": "MERCHANT01",
+  "amount": 100.0,
+  "event_time": "2026-09-30T10:00:00"
 }
+```
+
+For the installed Kafka version, the console producer uses:
+
+```powershell
+.\kafka-console-producer.bat --bootstrap-server localhost:9092 --topic fraud-transactions
 ```
 
 ---
 
 # 11. Spark Structured Streaming
 
-The streaming implementation connects Spark Structured Streaming to Kafka.
+Spark Structured Streaming reads transactions from Kafka and processes them continuously.
 
-Processing flow:
+The processing sequence is:
 
 ```text
 Kafka
-  |
-  v
-Read Kafka Messages
-  |
-  v
+ |
+ v
+Read Message
+ |
+ v
 Parse JSON
-  |
-  v
-Validate Transaction
-  |
-  v
-Convert event_time
-  |
-  v
+ |
+ v
+Validate Fields
+ |
+ v
+Convert Event Time
+ |
+ v
 Apply Watermark
-  |
-  v
-Create Sliding Windows
-  |
-  v
-Calculate Features
-  |
-  v
-Write Output
+ |
+ v
+Calculate Windows
+ |
+ v
+Generate Features
+ |
+ v
+Write Parquet
 ```
 
-The streaming implementation uses the Spark Kafka connector:
+The Spark Kafka connector used is:
 
 ```text
 org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.9
@@ -334,9 +368,89 @@ org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.9
 
 ---
 
-# 12. Real-Time Features
+# 12. JSON Parsing and Validation
 
-The final integrated streaming pipeline generates:
+Incoming Kafka messages are parsed into structured Spark columns.
+
+The main fields are:
+
+```text
+transaction_id
+card_id
+merchant_id
+amount
+event_time
+```
+
+Validation is performed before feature generation so that malformed or invalid transactions do not enter the processing stage.
+
+---
+
+# 13. Event-Time Processing
+
+The streaming pipeline uses the transaction's actual:
+
+```text
+event_time
+```
+
+rather than relying only on message arrival time.
+
+This is important because transactions can arrive out of order.
+
+Example arrival order:
+
+```text
+10:01
+10:04
+10:02
+10:03
+```
+
+Spark evaluates the transactions according to their event timestamps when performing event-time window calculations.
+
+---
+
+# 14. Watermarking
+
+The streaming implementation uses:
+
+```text
+Watermark = 10 minutes
+```
+
+A watermark allows Spark to handle late-arriving events while preventing streaming state from being retained indefinitely.
+
+It provides a boundary for how long Spark should wait for delayed events during event-time processing.
+
+---
+
+# 15. Sliding Windows
+
+The implementation uses:
+
+```text
+Window Duration = 10 minutes
+Slide = 1 minute
+```
+
+This creates overlapping windows:
+
+```text
+00:00 → 00:10
+00:01 → 00:11
+00:02 → 00:12
+00:03 → 00:13
+...
+```
+
+Overlapping windows allow the system to continuously calculate recent transaction behaviour.
+
+---
+
+# 16. Real-Time Features
+
+The streaming layer generates two groups of features.
 
 ### 5-minute features
 
@@ -353,43 +467,220 @@ transaction_amount_10m
 unique_merchants_10m
 ```
 
----
-
-# 13. Real-Time Feature Verification
-
-The following transactions were used for verification:
+For example, if a card performs:
 
 ```text
-10:00 → ₹500
-10:02 → ₹800
-10:03 → ₹12,000
-10:04 → ₹2,000
+10:00 → ₹100 → Merchant A
+10:02 → ₹250 → Merchant B
+10:04 → ₹500 → Merchant C
 ```
 
-The resulting 5-minute window correctly produced:
+The corresponding 10-minute values can be:
 
 ```text
-transaction_count_5m  = 4
-transaction_amount_5m = 15,300
+transaction_count_10m = 3
+transaction_amount_10m = 850
+unique_merchants_10m = 3
 ```
-
-The corresponding 10-minute window produced:
-
-```text
-transaction_count_10m  = 4
-transaction_amount_10m = 15,300
-unique_merchants_10m   = 4
-```
-
-The output demonstrated the expected sliding-window behaviour.
 
 ---
 
-# 14. Event-Time Processing
+# 17. Streaming Output Verification
 
-The streaming implementation uses the transaction's `event_time`.
+The generated streaming Parquet output was inspected directly during Windows testing.
 
-An out-of-order sequence was tested:
+The verified output contained:
+
+```text
+window_start
+window_end
+card_id
+transaction_count_5m
+transaction_amount_5m
+transaction_count_10m
+transaction_amount_10m
+unique_merchants_10m
+```
+
+The verification found:
+
+```text
+Non-empty streaming output rows = 14
+```
+
+An example verified result was:
+
+```text
+card_id = CARD100
+
+transaction_count_5m = 3
+transaction_amount_5m = 850.0
+
+transaction_count_10m = 3
+transaction_amount_10m = 850.0
+
+unique_merchants_10m = 3
+```
+
+---
+
+# 18. Stateful Previous-Transaction Processing
+
+A genuine Spark stateful implementation was developed using:
+
+```text
+applyInPandasWithState
+```
+
+The state is maintained independently for each:
+
+```text
+card_id
+```
+
+The state stores recent event timestamps and is used to calculate:
+
+```text
+previous_transaction_time
+time_since_previous_transaction
+```
+
+The state is bounded to:
+
+```text
+100 timestamps per card
+```
+
+This prevents unbounded state growth.
+
+Processing logic:
+
+```text
+Transaction
+     |
+     v
+Group by card_id
+     |
+     v
+Read Existing State
+     |
+     v
+Find Previous Transaction
+     |
+     v
+Calculate Time Difference
+     |
+     v
+Add Current Event
+     |
+     v
+Limit State to 100 Timestamps
+     |
+     v
+Update State
+```
+
+---
+
+# 19. Stateful Output Verification
+
+The stateful previous-transaction processing was executed and verified.
+
+The generated output contained:
+
+```text
+Total rows = 6
+```
+
+The output included:
+
+```text
+transaction_id
+card_id
+merchant_id
+amount
+event_time
+previous_transaction_time
+time_since_previous_transaction
+```
+
+For example:
+
+```text
+TEST002
+event_time = 10:02
+previous_transaction_time = 10:00
+time_since_previous_transaction = 120 seconds
+```
+
+This confirms that the stateful temporal feature was actually implemented and produced output.
+
+---
+
+# 20. Local Windows Optimizations
+
+Because the implementation was tested on a local Windows environment, several settings were adjusted to reduce processing overhead.
+
+### Kafka records per trigger
+
+```text
+maxOffsetsPerTrigger = 10
+```
+
+### Spark shuffle partitions
+
+```text
+spark.sql.shuffle.partitions = 2
+```
+
+### Kafka starting position
+
+```text
+startingOffsets = earliest
+```
+
+The smaller Kafka trigger size makes local stateful processing easier to test.
+
+The settings are development configurations and should not be treated as production cluster settings.
+
+---
+
+# 21. Checkpointing
+
+Checkpointing was tested for streaming recovery.
+
+The experiment followed:
+
+```text
+Start Query
+   |
+   v
+Process Transactions
+   |
+   v
+Checkpoint Created
+   |
+   v
+Stop Query
+   |
+   v
+Restart Query
+   |
+   v
+Continue Processing
+```
+
+Checkpoint/state-store files were generated during the experiments.
+
+Checkpointing provides the mechanism required for recovering streaming progress and state after a restart.
+
+---
+
+# 22. Out-of-Order Event Experiment
+
+Out-of-order transactions were intentionally generated to verify event-time processing.
+
+Example:
 
 ```text
 10:01
@@ -398,209 +689,257 @@ An out-of-order sequence was tested:
 10:03
 ```
 
-The transactions were intentionally not delivered in chronological order.
-
-The experiment demonstrated that Spark's event-time windows could correctly incorporate the transactions according to their event timestamps while they remained within the configured lateness boundary.
+The experiment demonstrated that Spark could use event timestamps when calculating time-based windows instead of simply treating message arrival order as transaction order.
 
 ---
 
-# 15. Watermark Configuration
+# 23. Windows Hadoop NativeIO Issue
 
-The final streaming pipeline uses:
+During Windows testing, Spark encountered a Hadoop NativeIO error while directly scanning some streaming Parquet output:
 
 ```text
-Watermark = 10 minutes
+java.lang.UnsatisfiedLinkError:
+'boolean org.apache.hadoop.io.nativeio.NativeIO$Windows.access0(...)'
 ```
 
-The watermark was tested using later event-time transactions to advance the streaming event-time progress.
+This is a Windows-specific Hadoop native I/O issue.
 
-The experiment confirmed that the configured event-time windows produced the expected results after watermark progression.
+The generated Parquet files were nevertheless present and were independently inspected using PyArrow.
+
+The verification showed:
+
+```text
+Streaming output files = 8
+Total non-empty rows = 14
+```
+
+Therefore, the issue affected direct Spark-side inspection in the local Windows environment rather than proving that the output was absent.
 
 ---
 
-# 16. Sliding Window Implementation
+# 24. PyArrow Verification
 
-The streaming implementation uses a 10-minute event-time window with a 1-minute slide.
+PyArrow was used to independently inspect generated Parquet files when Spark encountered the Windows NativeIO issue.
 
-This produces overlapping windows.
-
-Example:
+The streaming output contained:
 
 ```text
-00:00 → 00:10
-00:01 → 00:11
-00:02 → 00:12
-00:03 → 00:13
+8 Parquet files
 ```
 
-The final verification produced multiple overlapping windows with changing transaction counts and amounts as transactions entered and left the 5-minute and 10-minute windows.
-
----
-
-# 17. Checkpoint Recovery Experiment
-
-Checkpoint recovery was explicitly tested.
-
-Experiment flow:
+Their row counts were:
 
 ```text
-Start Streaming Query
-        |
-        v
-Process Transaction
-        |
-        v
-Checkpoint Created
-        |
-        v
-Stop Query
-        |
-        v
-Restart Using Same Checkpoint
-        |
-        v
-Send New Transactions
-        |
-        v
-Continue Processing
+0
+0
+0
+0
+6
+0
+0
+8
 ```
-
-The experiment successfully demonstrated that the streaming query could restart using the existing checkpoint and continue processing subsequent Kafka transactions.
-
-The result supports the use of checkpointing for recovery in the implemented streaming pipeline.
-
----
-
-# 18. Previous-Transaction Streaming Experiment
-
-Spark's stateful processing API was independently tested for previous-transaction tracking.
-
-The test successfully produced:
-
-```text
-PREV001 → previous = NULL
-PREV002 → previous = 03:00:00
-PREV003 → previous = 03:02:00
-PREV004 → previous = 03:05:00
-```
-
-The corresponding time differences were also calculated successfully.
-
-However, integrating this stateful operation into the main Kafka → Spark → Parquet pipeline caused Python worker connection/time-out problems in the Windows local environment.
 
 Therefore:
 
 ```text
-Batch previous-transaction feature:
-        ENABLED
-
-Main streaming previous-transaction feature:
-        DISABLED
+Total rows = 14
 ```
 
-The feature was not presented as part of the final integrated streaming pipeline.
-
----
-
-# 19. Batch vs Streaming Benchmark
-
-## 19.1 Batch Benchmark
-
-Measured result:
+The separate previous-transaction output contained:
 
 ```text
-Records              = 47,203
-Processing Time       = 33.67 seconds
-Throughput            = 1,401.89 records/second
+5 files
+Total rows = 6
 ```
 
-## 19.2 Streaming Benchmark
+This provided an independent verification of the generated outputs.
 
-Measured result:
+---
+
+# 25. Automated Testing
+
+The Spark test suite was executed using:
+
+```powershell
+venv\Scripts\python.exe -m pytest spark/tests -q
+```
+
+Result:
 
 ```text
-Records               = 20
-Processing Time       = 5.44 seconds
-Throughput            = 3.68 records/second
-Micro-batches         = 2
-Average records/batch = 10
+4 passed
 ```
 
-The streaming benchmark also showed that the local environment could fall behind a 5-second processing trigger when Spark required more time to process a micro-batch.
+Therefore:
 
-These measurements represent the local Windows development environment and are not general performance limits of Spark.
+```text
+4 / 4 automated tests passed
+```
 
----
-
-# 20. Testing and Verification
-
-The following implementation areas were tested:
-
-| Test                                                | Result     |
-| --------------------------------------------------- | ---------- |
-| Spark startup                                       | ✅ Passed   |
-| Batch pipeline syntax                               | ✅ Passed   |
-| Batch Parquet output                                | ✅ Passed   |
-| Historical feature generation                       | ✅ Passed   |
-| Previous transaction — batch                        | ✅ Passed   |
-| Kafka topic                                         | ✅ Passed   |
-| Kafka producer                                      | ✅ Passed   |
-| Streaming startup                                   | ✅ Passed   |
-| JSON parsing                                        | ✅ Passed   |
-| Transaction validation                              | ✅ Passed   |
-| 5-minute windows                                    | ✅ Passed   |
-| 10-minute windows                                   | ✅ Passed   |
-| Event-time processing                               | ✅ Passed   |
-| Out-of-order events                                 | ✅ Passed   |
-| Watermark processing                                | ✅ Passed   |
-| Checkpoint recovery                                 | ✅ Passed   |
-| Stateful previous transaction — isolated test       | ✅ Passed   |
-| Stateful previous transaction — integrated pipeline | ⚠️ Limited |
-| Batch benchmark                                     | ✅ Passed   |
-| Streaming benchmark                                 | ✅ Passed   |
+The tests provide automated verification of the implemented Spark functionality.
 
 ---
 
-# 21. Complete Codebase Structure
+# 26. Testing Summary
+
+| Test Area                         | Result     |
+| --------------------------------- | ---------- |
+| Spark startup                     | Passed     |
+| Spark DataFrame processing        | Passed     |
+| Batch processing                  | Passed     |
+| Batch Parquet output              | Passed     |
+| Historical feature generation     | Passed     |
+| Previous transaction — batch      | Passed     |
+| Kafka broker                      | Passed     |
+| Kafka topic                       | Passed     |
+| Kafka producer                    | Passed     |
+| Structured Streaming startup      | Passed     |
+| JSON parsing                      | Passed     |
+| Transaction validation            | Passed     |
+| Event-time processing             | Passed     |
+| Watermark processing              | Passed     |
+| Sliding windows                   | Passed     |
+| 5-minute features                 | Passed     |
+| 10-minute features                | Passed     |
+| Out-of-order events               | Passed     |
+| Stateful previous transaction     | Passed     |
+| Streaming Parquet generation      | Verified   |
+| Checkpoint/state-store generation | Verified   |
+| Automated test suite              | 4/4 Passed |
+
+---
+
+# 27. Performance Benchmarks
+
+The following measurements were obtained from the completed benchmark runs in the local Windows development environment.
+
+## 27.1 Batch Benchmark
+
+```text
+Records              = 1,589,789
+Processing Time       = 15.9130275 seconds
+Throughput            = 99,904.8735 records/second
+```
+
+### Batch benchmark summary
+
+| Metric          |                Result |
+| --------------- | --------------------: |
+| Records         |             1,589,789 |
+| Processing Time |          15.9130275 s |
+| Throughput      | 99,904.8735 records/s |
+
+---
+
+## 27.2 Streaming Benchmark
+
+```text
+Records                    = 20
+Processing Time             = 7.7562616 seconds
+Throughput                  = 2.5785618 records/second
+Micro-batches               = 3
+Average records/micro-batch = 6.6666667
+```
+
+### Streaming benchmark summary
+
+| Metric                      |              Result |
+| --------------------------- | ------------------: |
+| Records                     |                  20 |
+| Processing Time             |         7.7562616 s |
+| Throughput                  | 2.5785618 records/s |
+| Micro-batches               |                   3 |
+| Average records/micro-batch |           6.6666667 |
+
+---
+
+# 28. Benchmark Interpretation
+
+The benchmark results represent the **local Windows development environment** and should not be treated as general limits of Apache Spark.
+
+The batch benchmark processed:
+
+```text
+1,589,789 records
+```
+
+in approximately:
+
+```text
+15.91 seconds
+```
+
+The streaming benchmark processed:
+
+```text
+20 records
+```
+
+across:
+
+```text
+3 micro-batches
+```
+
+The two measurements represent different processing models and workloads.
+
+Batch processing works on a fixed dataset, whereas streaming includes additional overhead from:
+
+```text
+Kafka
++
+micro-batch scheduling
++
+event-time processing
++
+watermarking
++
+window computation
++
+state management
++
+checkpointing
++
+Parquet output
+```
+
+Therefore, the batch and streaming throughput figures should be reported as separate measurements rather than directly treating one as a production comparison against the other.
+
+---
+
+
+# 29. Codebase Structure
+
+The main Spark module is organized into separate components for batch processing, streaming, features, Kafka integration, experiments, benchmarks, and tests.
 
 ```text
 spark/
 │
-├── __init__.py
-│
 ├── batch/
-│   ├── __init__.py
 │   └── historical_pipeline.py
 │
 ├── streaming/
-│   ├── __init__.py
 │   ├── stream_processor.py
 │   └── state_manager.py
 │
 ├── features/
-│   ├── __init__.py
 │   ├── feature_definitions.py
 │   └── realtime_features.py
 │
 ├── kafka_connector/
-│   ├── __init__.py
 │   ├── consumer_sink.py
 │   └── producer_simulator.py
 │
 ├── experiments/
-│   ├── __init__.py
 │   ├── event_time_experiment.py
 │   └── batch_vs_streaming.py
 │
 ├── benchmarks/
-│   ├── __init__.py
 │   └── run_benchmarks.py
 │
 ├── configs/
 │   └── spark_config.yaml
-│
-├── reports/
-│   └── SPARK_RESEARCH_REPORT.md
 │
 ├── tests/
 │   ├── test_event_time.py
@@ -613,12 +952,24 @@ spark/
 
 ---
 
-# 22. Reproducibility
+# 30. Reproducibility
 
-## Batch
+## Run Automated Tests
+
+```powershell
+venv\Scripts\python.exe -m pytest spark/tests -q
+```
+
+Expected result:
 
 ```text
-python -m spark.batch.historical_pipeline
+4 passed
+```
+
+## Run Batch Pipeline
+
+```powershell
+venv\Scripts\python.exe -m spark.batch.historical_pipeline
 ```
 
 Input:
@@ -628,12 +979,12 @@ Datasets/IEEE CIS/train_transaction.csv
 Datasets/IEEE CIS/train_identity.csv
 ```
 
-## Streaming
+## Run Streaming Pipeline
 
-Kafka must be running first.
+Start Kafka first, then run:
 
-```text
-python -m spark.streaming.stream_processor
+```powershell
+venv\Scripts\python.exe -m spark.streaming.stream_processor
 ```
 
 Kafka topic:
@@ -642,104 +993,166 @@ Kafka topic:
 fraud-transactions
 ```
 
-## Transaction Generation
+## Kafka Console Producer
 
-```text
-python -m spark.kafka_connector.producer_simulator
-```
-
-## Event-Time Experiment
-
-```text
-python -m spark.experiments.event_time_experiment
-```
-
-## Tests
-
-```text
-pytest spark/tests -q
+```powershell
+.\kafka-console-producer.bat --bootstrap-server localhost:9092 --topic fraud-transactions
 ```
 
 ---
 
-# 23. Limitations
+# 31. Limitations
 
-1. The implementation was developed in Spark local mode rather than a multi-node cluster.
-2. Performance measurements therefore represent the local development environment.
-3. Streaming processing on Windows was slower than the configured 5/10-second trigger intervals in some experiments.
-4. The stateful previous-transaction operation was unstable when integrated with the main Parquet streaming pipeline.
-5. The final streaming pipeline therefore uses the verified 5-minute and 10-minute features.
-6. Raw IEEE-CIS datasets are stored locally and are not committed to Git.
-7. Spark provides the processing and feature-engineering layer; the downstream ML model remains responsible for fraud prediction.
+The implementation has several development-environment limitations:
 
----
+1. Spark was tested using local mode rather than a multi-node cluster.
 
-# 24. Achievements of Member 2
+2. Benchmark results represent the local Windows machine and cannot be treated as production performance.
 
-| Achievement                                | Result    |
-| ------------------------------------------ | --------- |
-| Historical Spark pipeline                  | Completed |
-| IEEE-CIS transaction + identity processing | Completed |
-| Historical card features                   | Completed |
-| Previous-transaction batch feature         | Verified  |
-| Kafka integration                          | Completed |
-| Spark Structured Streaming                 | Completed |
-| Event-time processing                      | Verified  |
-| Out-of-order transaction handling          | Verified  |
-| Watermark processing                       | Verified  |
-| 5-minute features                          | Verified  |
-| 10-minute features                         | Verified  |
-| Checkpoint recovery                        | Verified  |
-| Batch performance measurement              | Completed |
-| Streaming performance measurement          | Completed |
+3. Windows Hadoop NativeIO issues affected some direct Spark inspection of generated Parquet files.
+
+4. Streaming has additional overhead from Kafka, micro-batches, state, windows, watermarking, checkpointing, and output writing.
+
+5. IEEE-CIS datasets are stored locally because of their large size.
+
+6. Spark is responsible for data processing and feature engineering; the downstream fraud prediction model is handled separately.
 
 ---
 
-# 25. Final Outcome
+# 32. Achievements of Member 2
 
-Member 2 successfully developed the Spark processing layer connecting historical fraud analysis with real-time transaction processing.
+| Achievement                        | Result                   |
+| ---------------------------------- | ------------------------ |
+| Spark batch pipeline               | Completed                |
+| IEEE-CIS transaction processing    | Completed                |
+| IEEE-CIS identity processing       | Completed                |
+| Transaction + identity integration | Completed                |
+| Historical feature engineering     | Completed                |
+| Previous-transaction batch feature | Verified                 |
+| Kafka integration                  | Completed                |
+| Structured Streaming               | Completed                |
+| JSON parsing                       | Verified                 |
+| Transaction validation             | Verified                 |
+| Event-time processing              | Verified                 |
+| Watermarking                       | Verified                 |
+| Sliding windows                    | Verified                 |
+| 5-minute features                  | Verified                 |
+| 10-minute features                 | Verified                 |
+| Stateful previous transaction      | Implemented and verified |
+| Checkpointing                      | Tested                   |
+| Out-of-order events                | Tested                   |
+| Streaming Parquet output           | Verified                 |
+| Automated tests                    | 4/4 Passed               |
+| Batch benchmark                    | Completed                |
+| Streaming benchmark                | Completed                |
+| Git branch                         | `spark-processing`       |
+| Git commit                         | `1b47b35`                |
+| GitHub push                        | Successful               |
 
-The completed implementation provides:
+---
+
+# 33. Final Outcome
+
+The completed Member 2 module provides a unified Spark processing layer for historical and real-time financial transaction workloads.
+
+### Historical processing
 
 ```text
-Historical IEEE-CIS Data
-          |
-          v
-      Spark Batch
-          |
-          v
- Historical Features
-          |
-          v
-       Parquet
+IEEE-CIS Data
+     |
+     v
+Spark Batch
+     |
+     v
+Feature Engineering
+     |
+     v
+Historical Features
+     |
+     v
+Parquet
+```
 
+### Real-time processing
 
-Live Transactions
-          |
-          v
-         Kafka
-          |
-          v
+```text
+Transaction
+     |
+     v
+Kafka
+     |
+     v
 Spark Structured Streaming
-          |
-          v
-Event-Time + Watermark
-          |
-          v
+     |
+     v
+JSON + Validation
+     |
+     v
+Event Time + Watermark
+     |
+     v
+Sliding Windows
+     |
+     v
 5m / 10m Features
-          |
-          v
-       Parquet
+     |
+     v
+Parquet
 ```
 
-The implementation establishes the Spark layer required for integrating historical features and real-time transaction features with the project's downstream fraud-detection models.
+The module also contains stateful previous-transaction processing using:
+
+```text
+applyInPandasWithState
+```
+
+with:
+
+```text
+previous_transaction_time
+time_since_previous_transaction
+```
+
+The implementation was verified through automated tests, Kafka-based streaming tests, generated Parquet output, stateful processing verification, and performance benchmarks.
 
 ---
 
-# 26. Conclusion
+# 34. Conclusion
 
-Member 2 completed the Apache Spark processing implementation for both historical and real-time fraud-detection workloads.
+Member 2 completed the Apache Spark processing layer for the adaptive financial fraud detection project.
 
-The batch pipeline was successfully used for historical IEEE-CIS processing and temporal feature generation. The streaming pipeline was successfully integrated with Kafka and verified for event-time processing, out-of-order transactions, watermarking, sliding windows, real-time feature generation, and checkpoint recovery.
+The implementation demonstrates how Spark can be used as a common processing framework for:
 
-The final implementation provides a working foundation for connecting the Spark-generated features to the existing fraud-detection models.
+* historical IEEE-CIS analysis,
+* transaction and identity integration,
+* historical feature engineering,
+* Kafka-based real-time processing,
+* event-time analysis,
+* watermarking,
+* sliding-window feature generation,
+* stateful transaction-history processing, and
+* downstream ML feature preparation.
+
+The final implementation achieved:
+
+```text
+4/4 automated tests passed
+
+14 verified streaming feature rows
+
+6 verified previous-transaction state rows
+
+Batch benchmark:
+1,589,789 records
+15.9130275 seconds
+99,904.8735 records/second
+
+Streaming benchmark:
+20 records
+7.7562616 seconds
+2.5785618 records/second
+3 micro-batches
+6.6666667 records/micro-batch
+```
+
+The completed Spark module therefore fulfills Member 2's responsibility of building the **Apache Spark batch and real-time processing layer** for the research project.

@@ -68,3 +68,9 @@ credentials.json
 
 # Spark generated outputs and checkpoints
 spark/output/
+
+# Local Spark development artifacts
+spark/benchmarks/results/
+spark/test_stream_checkpoint/
+spark/streaming/stream_processor_backup.py
+venv311/
