@@ -1,0 +1,2 @@
+transaction_id,fraud_probability,decision,actual_label,preprocessing_time_ms,model_prediction_time_ms,total_inference_time_ms
+3544193,0.003993,LEGIT,LEGIT,55.871,2.235,58.108

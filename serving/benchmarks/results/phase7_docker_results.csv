@@ -1,0 +1,12 @@
+test_name,expected,actual,status,notes
+Dockerfile Exists,True,True,PASS,Dockerfile created in repository root
+Dockerfile Base Image,python:3.11-slim,python:3.11-slim,PASS,Lightweight Linux base image
+Dockerfile Bind Host,0.0.0.0,0.0.0.0,PASS,Bound to 0.0.0.0 for external container access
+Dockerfile Port,8000,8000,PASS,Exposed and listening on port 8000
+requirements.txt Completeness,All runtime dependencies,All runtime dependencies,PASS,fastapi uvicorn lightgbm pandas numpy joblib scikit-learn pydantic
+.dockerignore Validation,Excludes cache and venv,Excludes cache and venv,PASS,Excludes .venv and __pycache__ while preserving models/E1/
+Model Artifact Integrity,Valid SHA256 Checksums,Valid SHA256 Checksums,PASS,model.txt preprocessing.joblib feature_names.json untouched
+Local API Prediction Parity,Prob 0.003993 Decision LEGIT,Prob 0.003993 Decision LEGIT,PASS,Transaction 3544193 parity verified
+GET /health Endpoint,200 OK,200 OK,PASS,Service healthy model loaded true
+GET /docs Endpoint,200 OK,200 OK,PASS,Swagger UI accessible
+Docker Daemon Execution,Container Run,NOT TESTED,NOT TESTED,Host OS missing Docker daemon

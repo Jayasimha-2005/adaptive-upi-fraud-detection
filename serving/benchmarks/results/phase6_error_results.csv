@@ -1,0 +1,14 @@
+test_id,test_category,endpoint,payload_type,expected_status,actual_status,status,traceback_leaked
+1,Missing Required Request Fields,/predict/batch,Empty Object JSON ({}),422,422,PASS,False
+2,Wrong Data Types,/predict/batch,Invalid Data Structure (string instead of list),422,422,PASS,False
+3,Malformed JSON Input,/predict,Corrupt JSON Syntax,422,422,PASS,False
+4,Invalid/Missing Feature Data,/predict,Null/NaN Features Payload,200,200,PASS,False
+5,Invalid Batch Requests (Empty List),/predict/batch,Empty Array ([]),422,422,PASS,False
+6,Invalid Batch Requests (Bad Item),/predict/batch,Invalid Array Element ([12345]),422,422,PASS,False
+7,Model Unavailable,/predict,Engine Uninitialized (None),503,503,PASS,False
+8,Preprocessor Loading Failure,N/A,Missing Joblib Artifact,FileNotFoundError,FileNotFoundError,PASS,False
+9,Runtime Inference Failure,/predict,Simulated LGBM/CUDA Exception,500,500,PASS,False
+10,Health Check After Errors,/health,GET Request After Failures,200,200,PASS,False
+11,Error Response Structure Validation,/predict/batch,JSON Error Schema Check,422,422,PASS,False
+12,Zero Traceback/Path Leakage Check,/predict,Simulated Local Path Exception,500,500,PASS,False
+13,Service Resilience Verification,/predict,Valid Request After Errors,200,200,PASS,False
