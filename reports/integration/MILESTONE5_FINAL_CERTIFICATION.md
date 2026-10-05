@@ -22,7 +22,7 @@ Through a rigorous 6-phase engineering lifecycle (Phases 15 through 20), every a
 4. **Target Label Isolation**: Comprehensive verification that target labels (`isFraud`, `is_fraud`, `fraud_bool`, `Class`) never enter the feature matrix $X$ or influence inference.
 5. **Adversarial & Chaos Resilience**: 20 mandatory safety and chaos scenarios (Cases A through T) confirmed 100% pass rate, validating hard hydration gates, fail-closed mechanics, and rejection of malformed/unregistered data without synthetic median fabrication.
 6. **Hardware & Latency Profiling**: Measured local controlled throughput of 11.45 end-to-end transactions/sec with a median latency ($p50$) of 85.45 ms and complete component-level observability.
-7. **Full Repository Regression**: 273 total tests passed across all repository milestones (Phases 1, 2, 3, 4, Kafka, Member 3, and Phases 13–19) with zero functional regressions.
+7. **Full Repository Regression**: 276 total tests discovered (270 passed, 6 environmental skips, 0 failed) across all repository milestones (Phases 1, 2, 3, 4, Kafka, Flink/Spark, Member 3, and Phases 13–19) with zero functional regressions.
 
 ---
 
