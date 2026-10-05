@@ -1,0 +1,106 @@
+{
+  "phase": 19,
+  "phase_name": "Throughput & Latency Profiling",
+  "timestamp_utc": "2026-10-05 22:05:33",
+  "dataset_name": "train_transaction.csv",
+  "sample_size_N": 500,
+  "scored_count": 500,
+  "rejected_count": 0,
+  "error_count": 0,
+  "total_benchmark_time_seconds": 43.6724,
+  "throughputs": {
+    "end_to_end_tx_per_sec": 11.45,
+    "kafka_ingestion_events_per_sec": 20203.16,
+    "flink_processing_events_per_sec": 16477.23,
+    "bridge_correlation_events_per_sec": 20480.22,
+    "hydration_events_per_sec": 1375.0,
+    "preprocessing_events_per_sec": 11.98,
+    "e1_model_inference_events_per_sec": 361.16,
+    "successful_scores_per_sec": 11.45,
+    "rejections_per_sec": 0.0,
+    "error_rate": 0.0
+  },
+  "latencies_ms": {
+    "kafka_ingestion": {
+      "mean": 0.0495,
+      "std": 0.005,
+      "min": 0.0406,
+      "max": 0.0858,
+      "p50": 0.0487,
+      "p90": 0.0552,
+      "p95": 0.0576,
+      "p99": 0.0658
+    },
+    "flink_processing": {
+      "mean": 0.0607,
+      "std": 0.0055,
+      "min": 0.0529,
+      "max": 0.096,
+      "p50": 0.0594,
+      "p90": 0.0659,
+      "p95": 0.0701,
+      "p99": 0.0863
+    },
+    "bridge_correlation": {
+      "mean": 0.0488,
+      "std": 0.0087,
+      "min": 0.0386,
+      "max": 0.1877,
+      "p50": 0.0477,
+      "p90": 0.0542,
+      "p95": 0.0585,
+      "p99": 0.067
+    },
+    "hydration": {
+      "mean": 0.7273,
+      "std": 0.1457,
+      "min": 0.6274,
+      "max": 3.4404,
+      "p50": 0.7009,
+      "p90": 0.8166,
+      "p95": 0.8675,
+      "p99": 1.0339
+    },
+    "preprocessing": {
+      "mean": 83.4535,
+      "std": 7.3353,
+      "min": 78.7422,
+      "max": 147.4094,
+      "p50": 81.558,
+      "p90": 87.3197,
+      "p95": 93.2149,
+      "p99": 117.0254
+    },
+    "e1_inference": {
+      "mean": 2.7688,
+      "std": 0.2363,
+      "min": 1.9187,
+      "max": 5.6794,
+      "p50": 2.7568,
+      "p90": 2.9563,
+      "p95": 3.0305,
+      "p99": 3.4083
+    },
+    "end_to_end": {
+      "mean": 87.344,
+      "std": 7.4013,
+      "min": 82.4611,
+      "max": 152.1933,
+      "p50": 85.4455,
+      "p90": 91.4107,
+      "p95": 97.6314,
+      "p99": 120.6161
+    }
+  },
+  "environment": {
+    "os": "Windows 11",
+    "python_version": "3.13.13",
+    "cpu_architecture": "AMD64",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "lightgbm_version": "4.7.0",
+    "kafka_implementation": "LocalKafkaBroker (partitioned in-memory ring-buffer)",
+    "flink_implementation": "FlinkStreamProcessor (dual 5m/10m stateful sliding windows)",
+    "benchmark_context": "Measured in the local controlled environment"
+  },
+  "passed": true
+}
