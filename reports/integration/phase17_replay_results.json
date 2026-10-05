@@ -1,0 +1,75 @@
+{
+  "phase": 17,
+  "phase_name": "Historical Dataset Streaming Replay & Controlled Simulation",
+  "timestamp_utc": "2026-10-05 21:50:29",
+  "dataset_name": "train_transaction.csv",
+  "stages": [
+    {
+      "stage_name": "Stage_100",
+      "input_count": 100,
+      "processed_count": 100,
+      "scored_count": 100,
+      "rejected_count": 0,
+      "error_count": 0,
+      "total_time_seconds": 8.7355,
+      "throughput_tps": 11.45,
+      "latency_stats_ms": {
+        "mean": 87.3431,
+        "p50": 85.5315,
+        "p95": 93.0135,
+        "p99": 120.5196,
+        "min": 83.4882,
+        "max": 139.7105
+      },
+      "causality_violations": 0,
+      "target_leakage_detected": 0,
+      "lineage_complete": true
+    },
+    {
+      "stage_name": "Stage_500",
+      "input_count": 500,
+      "processed_count": 500,
+      "scored_count": 500,
+      "rejected_count": 0,
+      "error_count": 0,
+      "total_time_seconds": 44.1492,
+      "throughput_tps": 11.33,
+      "latency_stats_ms": {
+        "mean": 88.2867,
+        "p50": 84.4229,
+        "p95": 102.0787,
+        "p99": 116.7219,
+        "min": 81.8251,
+        "max": 128.986
+      },
+      "causality_violations": 0,
+      "target_leakage_detected": 0,
+      "lineage_complete": true
+    },
+    {
+      "stage_name": "Stage_1000",
+      "input_count": 1000,
+      "processed_count": 1000,
+      "scored_count": 1000,
+      "rejected_count": 0,
+      "error_count": 0,
+      "total_time_seconds": 101.7474,
+      "throughput_tps": 9.83,
+      "latency_stats_ms": {
+        "mean": 101.7331,
+        "p50": 100.6971,
+        "p95": 106.8514,
+        "p99": 129.9612,
+        "min": 93.6506,
+        "max": 145.058
+      },
+      "causality_violations": 0,
+      "target_leakage_detected": 0,
+      "lineage_complete": true
+    }
+  ],
+  "all_stages_causally_valid": true,
+  "all_stages_target_isolated": true,
+  "all_stages_lineage_complete": true,
+  "passed": true
+}
