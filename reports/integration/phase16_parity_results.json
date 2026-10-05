@@ -1,0 +1,81 @@
+{
+  "phase": 16,
+  "phase_name": "Systematic Offline vs. Streaming E1 Parity at Scale",
+  "timestamp_utc": "2026-10-05 21:43:43",
+  "dataset_name": "train_transaction.csv",
+  "sample_size_N": 100,
+  "evaluated_count": 100,
+  "rejection_count": 0,
+  "mean_absolute_delta": 0.0,
+  "max_absolute_delta": 0.0,
+  "decision_matches": 100,
+  "decision_mismatches": 0,
+  "feature_count_offline": 406,
+  "feature_count_streaming": 406,
+  "feature_order_mismatches": 0,
+  "threshold": 0.616521,
+  "parity_tolerance": 1e-10,
+  "parity_passed": true,
+  "sample_comparisons": [
+    {
+      "transaction_id": "2987000",
+      "card_id": "CARD-13926",
+      "amount": 68.5,
+      "timestamp": 86400,
+      "offline_probability": 0.027435,
+      "streaming_probability": 0.027435,
+      "absolute_delta": 0.0,
+      "offline_decision": "LEGIT",
+      "streaming_decision": "LEGIT",
+      "decision_match": true
+    },
+    {
+      "transaction_id": "2987001",
+      "card_id": "CARD-2755",
+      "amount": 29.0,
+      "timestamp": 86401,
+      "offline_probability": 0.041384,
+      "streaming_probability": 0.041384,
+      "absolute_delta": 0.0,
+      "offline_decision": "LEGIT",
+      "streaming_decision": "LEGIT",
+      "decision_match": true
+    },
+    {
+      "transaction_id": "2987002",
+      "card_id": "CARD-4663",
+      "amount": 59.0,
+      "timestamp": 86469,
+      "offline_probability": 0.018704,
+      "streaming_probability": 0.018704,
+      "absolute_delta": 0.0,
+      "offline_decision": "LEGIT",
+      "streaming_decision": "LEGIT",
+      "decision_match": true
+    },
+    {
+      "transaction_id": "2987003",
+      "card_id": "CARD-18132",
+      "amount": 50.0,
+      "timestamp": 86499,
+      "offline_probability": 0.011091,
+      "streaming_probability": 0.011091,
+      "absolute_delta": 0.0,
+      "offline_decision": "LEGIT",
+      "streaming_decision": "LEGIT",
+      "decision_match": true
+    },
+    {
+      "transaction_id": "2987004",
+      "card_id": "CARD-4497",
+      "amount": 50.0,
+      "timestamp": 86506,
+      "offline_probability": 0.080419,
+      "streaming_probability": 0.080419,
+      "absolute_delta": 0.0,
+      "offline_decision": "LEGIT",
+      "streaming_decision": "LEGIT",
+      "decision_match": true
+    }
+  ]
+}
