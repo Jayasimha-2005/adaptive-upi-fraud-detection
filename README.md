@@ -23,62 +23,73 @@ This repository implements a **production-grade, mathematically verified, closed
 
 ## 🏛️ End-to-End System Architecture
 
-The following diagram illustrates the complete, integrated multi-stage dataflow across all three system tiers:
+The following diagram illustrates the complete, integrated multi-stage dataflow across all system tiers:
 
 ```mermaid
 flowchart TD
-    subgraph Tier1["TIER 1: Ingestion & Ingress (Member 1)"]
-        A["Incoming Transaction Replay<br/>(IEEE-CIS Authorized Benchmark)"]
-        B["Kafka Ingestion Producer<br/>(Murmur2 Hash Partitioning on card1)"]
-        T1[("Kafka Topic:<br/>ieee_cis_transactions<br/>(6 Partitions, In-Order Delivery)")]
-        A --> B --> T1
+    subgraph Tier1 ["TIER 1: Ingestion and Ingress — Member 1: Ishwarya"]
+        A["Incoming Transaction Replay<br/>(IEEE-CIS Benchmark)"]
+        B["Kafka Ingestion Producer<br/>(Murmur2 Hash on card1)"]
+        T1[("Kafka Topic:<br/>ieee_cis_transactions<br/>(6 Partitions, In-Order)")]
+        A --> B
+        B --> T1
     end
 
-    subgraph Tier2["TIER 2: Stateful Stream Processing & CEP (Member 2)"]
-        F["Apache Flink 2.2 CEP Engine<br/>Event-Time Sliding Windows (5m, 10m, 1h, 24h)"]
-        S["Apache Spark 3.5.9 Micro-Batch<br/>Columnar Parquet Optimization (7.25x Speedup)"]
+    subgraph Tier2 ["TIER 2: Stateful Stream Processing and CEP — Member 2: Harika"]
+        F["Apache Flink 2.2 CEP Engine<br/>(Sliding Windows: 5m, 10m, 1h, 24h)"]
+        S["Apache Spark 3.5.9 Micro-Batch<br/>(Columnar Parquet Lake, 7.25x Speedup)"]
         T2[("Kafka Topic:<br/>fraud-features<br/>(Velocity: tx_count, sum_amt, deltas)")]
-        T1 --> F --> T2
-        T1 --> S
+        F --> T2
     end
 
-    subgraph TierBridge["INTEGRATION BRIDGE (Phase 13–14)"]
-        BR["StreamServingBridge<br/>(streaming/stream_serving_bridge.py)"]
-        T1 -.->|Raw Payload (event_time)| BR
-        T2 -.->|Velocity Features| BR
-        SYNC["TransactionID Correlation Buffer &<br/>Unified StreamingTransactionPayload Assembly"]
+    subgraph TierBridge ["INTEGRATION BRIDGE — Phases 13 and 14"]
+        BR["StreamServingBridge<br/>(Correlation Buffer)"]
+        SYNC["Unified StreamingTransactionPayload<br/>(Timestamp and Key Aligned)"]
         BR --> SYNC
     end
 
-    subgraph Tier3["TIER 3: Hydration, Serving & Inference (Member 3)"]
-        ISO["Target Isolation Gate<br/>(Strip isFraud labels at ingress)"]
-        ADAPT["OnlineFeatureHydrationAdapter<br/>(Point-in-Time Causal History: t_hist < t_event)"]
-        VEC["406 Canonical Feature Vector<br/>(Strict offline schema & column order)"]
-        PREP["Frozen Preprocessor<br/>(experiments/E1_lightgbm/preprocessing.joblib)"]
-        E1["Frozen E1 LightGBM Booster<br/>(experiments/E1_lightgbm/model.txt)"]
-        DEC["Decision Logic Gate<br/>(Calibrated Threshold = 0.616521)"]
-        RESP["ServingPredictionResponse<br/>(Decision, Probability, Latency, Audit Lineage)"]
+    subgraph Tier3 ["TIER 3: Hydration and Serving — Member 3: Hadassah Kiran"]
+        ISO["Target Isolation Gate<br/>(Strip isFraud labels)"]
+        ADAPT["OnlineFeatureHydrationAdapter<br/>(Causal History: t_hist < t_event)"]
+        VEC["406 Canonical Feature Vector<br/>(Strict E1 Column Order)"]
+        PREP["Frozen Preprocessor<br/>(preprocessing.joblib)"]
+        E1["Frozen E1 LightGBM Booster<br/>(model.txt)"]
+        DEC["Decision Logic Gate<br/>(Threshold: 0.616521)"]
+        RESP["ServingPredictionResponse<br/>(Verdict, Probability, Lineage)"]
 
-        SYNC --> ISO --> ADAPT --> VEC --> PREP --> E1 --> DEC --> RESP
+        ISO --> ADAPT
+        ADAPT --> VEC
+        VEC --> PREP
+        PREP --> E1
+        E1 --> DEC
+        DEC --> RESP
     end
 
-    subgraph Tier4["TIER 4: Continuous Drift Governance (Phase 4)"]
-        MON["Population Stability Index (PSI) Monitor"]
+    subgraph Tier4 ["TIER 4: Continuous Drift Governance — Phase 4"]
+        MON["Population Stability Index Monitor"]
         DRIFT{"PSI > 0.25 on<br/>Key Features?"}
         RETRAIN["Trigger Adaptive Retraining Pipeline<br/>(Validated on BAF Benchmark)"]
-        RESP -.-> MON --> DRIFT
-        DRIFT -- Yes --> RETRAIN
-        DRIFT -- No --> MON
+
+        MON --> DRIFT
+        DRIFT -- "Yes" --> RETRAIN
+        DRIFT -- "No" --> MON
     end
+
+    T1 --> F
+    T1 --> S
+    T1 -->|"Raw Event Payload"| BR
+    T2 -->|"Velocity Feature Record"| BR
+    SYNC --> ISO
+    RESP -.->|"Inference Telemetry"| MON
 ```
 
 ---
 
 ## 👥 Member Contributions & Data Flow Breakdown
 
-The system was engineered through a modular, contract-driven architecture where each member owns a specialized layer of the enterprise data pipeline:
+The system was engineered through a modular, contract-driven architecture where each team member owns a specialized layer of the enterprise data pipeline:
 
-### 1. Member 1: Ingestion & Kafka Ingress Layer
+### 1. Member 1 (Ishwarya): Ingestion & Kafka Ingress Layer
 - **Lead Focus**: Real-time event ingestion, message serialization, partition routing, and delivery guarantees.
 - **Exact Input**:
   - Raw transaction dictionaries formatted according to the IEEE-CIS transaction schema (`TransactionID`, `TransactionDT`, `TransactionAmt`, `card1` through `card6`, `ProductCD`, `addr1`, `addr2`, `P_emaildomain`, `R_emaildomain`, `C1`–`C14`, `D1`–`D15`, `M1`–`M9`, `V1`–`V339`).
@@ -91,7 +102,7 @@ The system was engineered through a modular, contract-driven architecture where 
 
 ---
 
-### 2. Member 2: Distributed Stream Processing & Stateful Velocity (Flink + Spark)
+### 2. Member 2 (Harika): Distributed Stream Processing & Stateful Velocity (Flink + Spark)
 - **Lead Focus**: Stateful event-time windowing, Complex Event Processing (CEP), velocity metric computation, and columnar batch persistence.
 - **Exact Input**:
   - Ingests the JSON stream from Kafka topic `ieee_cis_transactions`.
@@ -105,7 +116,7 @@ The system was engineered through a modular, contract-driven architecture where 
 
 ---
 
-### 3. Integration Bridge Layer (Phase 13 & 14)
+### 3. Integration Bridge Layer (Phases 13 & 14)
 - **Lead Focus**: Cross-member asynchronous correlation, temporal alignment, and schema boundary enforcement.
 - **Exact Input**:
   - Raw payload from `ieee_cis_transactions` + velocity features from `fraud-features`.
@@ -118,7 +129,7 @@ The system was engineered through a modular, contract-driven architecture where 
 
 ---
 
-### 4. Member 3: Online Feature Hydration, Preprocessing & Model Scoring
+### 4. Member 3 (Hadassah Kiran): Online Feature Hydration, Preprocessing & Model Scoring
 - **Lead Focus**: Causal feature reconstruction, frozen preprocessing, LightGBM tree inference, and threshold evaluation.
 - **Exact Input**:
   - [`StreamingTransactionPayload`](file:///c:/Users/Harini/Documents/GitHub/Jayasimha-github/adaptive-upi-fraud-detection/streaming/stream_serving_bridge.py) from the Bridge.
@@ -136,7 +147,7 @@ The system was engineered through a modular, contract-driven architecture where 
 
 ---
 
-### ⏳ Remaining Roadmap for Member 3 (Deployment & Productionization)
+### ⏳ Remaining Roadmap for Member 3 (Hadassah Kiran) — Deployment & Productionization
 
 > [!NOTE]
 > The algorithmic serving logic, feature hydration adapter, offline inference engine, and test suites are 100% complete and certified (`21/21 PASS`). The following deployment and operational tasks are scoped for Member 3's independent containerization release:
@@ -208,7 +219,7 @@ The decision threshold was mathematically selected on the validation split by ma
 
 ## 🚀 Quantified Gains from Full System Integration
 
-By integrating Member 1 (Kafka), Member 2 (Flink/Spark), the Phase 13 Bridge, and Member 3 (Serving), the project achieved certified milestones that isolated components could never provide:
+By integrating Member 1 (Ishwarya), Member 2 (Harika), the Phase 13 Bridge, and Member 3 (Hadassah Kiran), the project achieved certified milestones that isolated components could never provide:
 
 1. **Exact Mathematical Parity ($\Delta P = 0.0000000000$)**:
    - In [`streaming/tests/test_phase16_parity.py`](file:///c:/Users/Harini/Documents/GitHub/Jayasimha-github/adaptive-upi-fraud-detection/streaming/tests/test_phase16_parity.py), we benchmarked the offline batch inference pipeline against the live streaming pipeline across 100 sequential transactions.
@@ -323,13 +334,13 @@ pytest serving/tests/ streaming/tests/ tests/test_phase1.py -v
 This project was engineered and researched by the collaborative efforts of:
 
 - **Jayasimha Padigeri** ([@Jayasimha-2005](https://github.com/Jayasimha-2005)) — *Lead Machine Learning & Research Systems Engineer*
-  - Designed, trained, and frozen the canonical E1 LightGBM baseline, E2 GRU, E3 Hybrid, and Phase 4 drift adaptation protocols.
+  - Designed, trained, and froze the canonical E1 LightGBM baseline, E2 GRU, E3 Hybrid, and Phase 4 drift adaptation protocols.
   - Implemented the Milestone 5 end-to-end integration bridge, causal feature hydration adapter, and mathematical parity certification.
-- **Member 1** — *Streaming Ingestion & Kafka Architect*
+- **Ishwarya** (*Member 1*) — *Streaming Ingestion & Kafka Architect*
   - Engineered the multi-partitioned event ingestion producers, Murmur2 hash entity routing, and at-least-once message delivery configurations.
-- **Member 2** — *Distributed Stream Processing & Data Engineer*
+- **Harika** (*Member 2*) — *Distributed Stream Processing & Data Engineer*
   - Developed Apache Flink stateful sliding-window CEP pipelines, velocity ratio metrics, and Apache Spark columnar Parquet optimizations.
-- **Member 3** — *Serving, Containerization & API Deployment Lead*
+- **Hadassah Kiran** (*Member 3*) — *Serving, Containerization & API Deployment Lead*
   - Developed the serving layer architecture, model wrapper, and leads ongoing Docker containerization, FastAPI live deployment, and Prometheus monitoring.
 
 ---
