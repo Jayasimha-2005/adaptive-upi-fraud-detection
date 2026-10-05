@@ -196,8 +196,8 @@ class StreamServingBridge:
             "TransactionAmt": float(amt) if amt is not None else None,
             "TransactionDT": dt_val,
             "ProductCD": str(prod_cd) if prod_cd else "W",
-            "device_type": event_dict.get("device_type") or event_dict.get("DeviceType"),
-            "country": event_dict.get("country") or event_dict.get("addr2"),
+            "device_type": str(event_dict.get("device_type") or event_dict.get("DeviceType")) if (event_dict.get("device_type") or event_dict.get("DeviceType")) else None,
+            "country": str(event_dict.get("country") or event_dict.get("addr2")) if (event_dict.get("country") or event_dict.get("addr2")) else None,
         }
 
     def assemble_payload(
