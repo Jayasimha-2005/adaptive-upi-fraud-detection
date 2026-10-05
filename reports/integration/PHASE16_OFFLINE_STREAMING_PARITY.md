@@ -1,6 +1,6 @@
 # Phase 16: Systematic Offline vs. Streaming E1 Parity Report
 
-- **Date / Time**: `2026-10-05 21:54:12 UTC`
+- **Date / Time**: `2026-10-05 22:01:50 UTC`
 - **Scope**: Rigorous comparative validation of Canonical Offline E1 vs. End-to-End Streaming Pipeline
 - **Dataset Evaluated**: `train_transaction.csv` (Authorized IEEE-CIS Fraud Benchmark)
 - **Sample Size ($N$)**: `100`

@@ -111,14 +111,18 @@ class CorrelationBuffer:
         if not best_match:
             return None
 
-        return VelocityMetrics(
-            count_5m=best_match.get("transaction_count_5m"),
-            amount_5m=best_match.get("total_amount_5m"),
-            avg_amount_5m=best_match.get("average_amount_5m"),
-            count_10m=best_match.get("transaction_count_10m"),
-            amount_10m=best_match.get("total_amount_10m"),
-            velocity_ratio=best_match.get("transaction_velocity_ratio"),
-        )
+        try:
+            return VelocityMetrics(
+                count_5m=best_match.get("transaction_count_5m"),
+                amount_5m=best_match.get("total_amount_5m"),
+                avg_amount_5m=best_match.get("average_amount_5m"),
+                count_10m=best_match.get("transaction_count_10m"),
+                amount_10m=best_match.get("total_amount_10m"),
+                velocity_ratio=best_match.get("transaction_velocity_ratio"),
+            )
+        except Exception:
+            # Corrupted velocity record: do not let corrupted data crash serving
+            return None
 
 
 class StreamServingBridge:

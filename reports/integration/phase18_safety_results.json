@@ -1,0 +1,151 @@
+{
+  "phase": 18,
+  "phase_name": "Safety, Poisoning & Negative Chaos Testing",
+  "timestamp_utc": "2026-10-05 21:58:47",
+  "total_test_cases": 20,
+  "passed_test_cases": 20,
+  "failed_test_cases": 0,
+  "all_passed": true,
+  "test_results": [
+    {
+      "case_id": "Case_A",
+      "name": "Missing TransactionAmt",
+      "expected": "REJECTED_BY_HYDRATION_GATE, scored=False, model_calls=0",
+      "actual": "scored=False, error=REJECTED_BY_HYDRATION_GATE",
+      "passed": true
+    },
+    {
+      "case_id": "Case_B",
+      "name": "Missing card1",
+      "expected": "REJECTED_BY_HYDRATION_GATE, scored=False",
+      "actual": "scored=False, error=REJECTED_BY_HYDRATION_GATE",
+      "passed": true
+    },
+    {
+      "case_id": "Case_C",
+      "name": "Unknown Entity/Card",
+      "expected": "REJECTED_BY_HYDRATION_GATE, no median fabrication",
+      "actual": "scored=False, error=REJECTED_BY_HYDRATION_GATE",
+      "passed": true
+    },
+    {
+      "case_id": "Case_D",
+      "name": "Missing ProductCD",
+      "expected": "Controlled handling: default harmonization or hydration rejection",
+      "actual": "scored=True, decision=LEGIT",
+      "passed": true
+    },
+    {
+      "case_id": "Case_E",
+      "name": "isFraud target injection",
+      "expected": "isFraud stripped before model input matrix X",
+      "actual": "isFraud in features=False",
+      "passed": true
+    },
+    {
+      "case_id": "Case_F",
+      "name": "fraud_bool target injection",
+      "expected": "fraud_bool stripped before model input matrix X",
+      "actual": "fraud_bool in features=False",
+      "passed": true
+    },
+    {
+      "case_id": "Case_G",
+      "name": "Future history injection",
+      "expected": "Future transaction excluded from causal query (< current_dt)",
+      "actual": "max_hist_ts=0.0",
+      "passed": true
+    },
+    {
+      "case_id": "Case_H",
+      "name": "Current-event history injection",
+      "expected": "Current transaction must not enter history before scoring",
+      "actual": "present_before=False",
+      "passed": true
+    },
+    {
+      "case_id": "Case_I",
+      "name": "Out-of-order event",
+      "expected": "Out-of-order event only queries history strictly < its own timestamp",
+      "actual": "history_has_future_event=False",
+      "passed": true
+    },
+    {
+      "case_id": "Case_J",
+      "name": "Duplicate event",
+      "expected": "Deterministic scoring; sequential offset allocation; no crash",
+      "actual": "offset1=0, offset2=1",
+      "passed": true
+    },
+    {
+      "case_id": "Case_K",
+      "name": "Malformed event payload",
+      "expected": "Controlled rejection via hydration gate; no process crash",
+      "actual": "scored=False, error=REJECTED_BY_HYDRATION_GATE",
+      "passed": true
+    },
+    {
+      "case_id": "Case_L",
+      "name": "Invalid timestamp format",
+      "expected": "Controlled handling without unhandled exception",
+      "actual": "scored=True, dt=0.0",
+      "passed": true
+    },
+    {
+      "case_id": "Case_M",
+      "name": "Negative transaction amount",
+      "expected": "Controlled scoring or validation; no crash",
+      "actual": "scored=True, prob=0.019836",
+      "passed": true
+    },
+    {
+      "case_id": "Case_N",
+      "name": "Extremely large amount",
+      "expected": "Numeric stability; probability bounded in [0, 1]",
+      "actual": "scored=True, prob=0.044733",
+      "passed": true
+    },
+    {
+      "case_id": "Case_O",
+      "name": "Unknown categorical value",
+      "expected": "Preprocessor maps unseen category safely without failure",
+      "actual": "scored=True, decision=LEGIT",
+      "passed": true
+    },
+    {
+      "case_id": "Case_P",
+      "name": "Corrupted velocity record",
+      "expected": "Robust handling; canonical E1 inference survives gracefully",
+      "actual": "scored=True",
+      "passed": true
+    },
+    {
+      "case_id": "Case_Q",
+      "name": "Fraud-features arriving before raw event",
+      "expected": "Correlation buffer correlates buffered velocity event successfully",
+      "actual": "correlated_velocity=True",
+      "passed": true
+    },
+    {
+      "case_id": "Case_R",
+      "name": "Velocity record with future timestamp",
+      "expected": "Future velocity record rejected from causal correlation",
+      "actual": "correlated_count_5m=None",
+      "passed": true
+    },
+    {
+      "case_id": "Case_S",
+      "name": "Kafka duplicate/replay scenario",
+      "expected": "Independent consumer groups safely replay exact partition logs",
+      "actual": "replayed_count=1",
+      "passed": true
+    },
+    {
+      "case_id": "Case_T",
+      "name": "Serving model unavailable",
+      "expected": "Controlled failure; zero false successful predictions",
+      "actual": "graceful_failure=True",
+      "passed": true
+    }
+  ]
+}

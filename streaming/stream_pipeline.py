@@ -137,23 +137,32 @@ class StreamingPipelineOrchestrator:
             card_key = f"CARD-{card_key}"
 
         tx_id = str(raw_event.get("TransactionID") or raw_event.get("transaction_id") or "UNKNOWN")
-        amt = float(raw_event.get("TransactionAmt") or raw_event.get("amount") or 0.0)
-        dt = float(raw_event.get("TransactionDT") or raw_event.get("timestamp") or time.time())
+        try:
+            amt_raw = raw_event.get("TransactionAmt") or raw_event.get("amount")
+            amt = float(amt_raw) if amt_raw is not None else 0.0
+        except (ValueError, TypeError):
+            amt = None
+
+        try:
+            dt_raw = raw_event.get("TransactionDT") or raw_event.get("timestamp")
+            dt = float(dt_raw) if dt_raw is not None else time.time()
+        except (ValueError, TypeError):
+            dt = None
 
         meta_raw = self.producer.send(
             topic=self.raw_topic,
             key=card_key,
             value=raw_event,
             partition=partition,
-            timestamp=dt,
+            timestamp=dt if dt is not None else 0.0,
         )
         self.producer.flush()
 
         trace = TransactionTrace(
             transaction_id=tx_id,
             card_id=card_key,
-            amount=amt,
-            timestamp=dt,
+            amount=amt if amt is not None else 0.0,
+            timestamp=dt if dt is not None else 0.0,
             raw_topic=meta_raw.topic,
             raw_partition=meta_raw.partition,
             raw_offset=meta_raw.offset,
