@@ -18,6 +18,22 @@ This repository contains the **ML Serving & Online/Offline Inference Infrastruct
 
 ---
 
+> ### 📦 Milestone 5 Certified Handoff Brief for Member 3 (Hadassah Kiran)
+> 
+> **Welcome, Hadassah Kiran!** All core algorithmic serving, feature hydration, causal leakage protection, and streaming pipeline contracts are **100% complete and certified (`270/270 PASS`, `0 FAIL`)**.
+> 
+> Detailed handoff documentation is published at: **[`docs/HANDOFF_MEMBER3_HADASSAH_KIRAN.md`](file:///c:/Users/Harini/Documents/GitHub/Jayasimha-github/adaptive-upi-fraud-detection/docs/HANDOFF_MEMBER3_HADASSAH_KIRAN.md)**.
+> 
+> #### Your Next Steps (Deployment & Containerization):
+> 1. **Install dependencies**: `pip install -r serving/requirements.txt`
+> 2. **Run live FastAPI server**: `cd serving && uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload`
+> 3. **Verify endpoints**: Check `http://localhost:8000/docs`, `/health`, `/predict`, and `/metrics`.
+> 4. **Run API & Monitoring tests**: `pytest serving/tests/test_api.py serving/tests/test_phase8_monitoring.py -v`
+> 5. **Build & run Docker image**: `docker build -t adaptive-fraud-serving:v1 -f serving/Dockerfile .` and `docker run -d -p 8000:8000 --name fraud-serving-api adaptive-fraud-serving:v1`
+> 6. **Run Docker verification tests**: `pytest serving/tests/test_phase7_docker.py -v`
+
+---
+
 ## 1. Research Question & Scope
 
 > **Research Question:**  
