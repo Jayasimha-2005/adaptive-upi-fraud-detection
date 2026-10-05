@@ -327,6 +327,98 @@ Kafka   Spark   FastAPI
 
 ---
 
+## 🚀 Integrated Real-Time Infrastructure Track (Member 1 + Member 2)
+
+The repository integrates the real-time event streaming and distributed data engineering infrastructure developed by **Member 1 (Apache Kafka)** and **Member 2 (Apache Spark & Apache Flink)** alongside the canonical research track:
+
+```text
+                                TRANSACTION REPLAY / SIMULATION
+                                 (IEEE-CIS / PaySim / Synthetic)
+                                               │
+                                               ▼
+                              ┌─────────────────────────────────┐
+                              │     Kafka Producer Ingestion    │
+                              │  - Key: card_id / user_id       │
+                              │  - acks=all, idempotence=True   │
+                              └────────────────┬────────────────┘
+                                               │
+                                               ▼
+                              ┌─────────────────────────────────┐
+                              │     Kafka: fraud-transactions   │
+                              │     (6 Partitions, Murmur2 key) │
+                              └────────┬───────────────┬────────┘
+                                       │               │
+                      ┌────────────────┴───┐       ┌───┴────────────────┐
+                      │                    │       │                    │
+                      ▼                    │       │                    ▼
+    ┌───────────────────────────────────┐  │       │  ┌───────────────────────────────────┐
+    │  Apache Flink 2.2 (Real-Time CEP) │  │       │  │ Apache Spark 3.5.9 (Batch/Stream) │
+    ├───────────────────────────────────┤  │       │  ├───────────────────────────────────┤
+    │ • key_by(user_id)                 │  │       │  │ • Columnar Parquet conversion     │
+    │ • 5m & 10m Sliding Event Windows  │  │       │  │   (7.25x speedup, 927k rec/s)     │
+    │ • Velocity Ratio Computation      │  │       │  │ • Historical feature engineering  │
+    │ • Sub-second alert generation     │  │       │  │ • Micro-batch streaming connector │
+    └─────────────────┬─────────────────┘  │       │  └─────────────────┬─────────────────┘
+                      │                    │       │                    │
+                      ▼                    │       │                    ▼
+    ┌───────────────────────────────────┐  │       │  ┌───────────────────────────────────┐
+    │      Kafka: fraud-features        │  │       │  │        Parquet Data Lake          │
+    │   (Real-time feature vectors)     │  │       │  │   (Offline batch feature store)   │
+    └─────────────────┬─────────────────┘  │       │  └─────────────────┬─────────────────┘
+                      │                    │       │                    │
+                      └─────────────────┐  │  ┌────┘                    │
+                                        │  │  │                         │
+                                        ▼  ▼  ▼                         │
+========================================================================│=================
+                            MODEL SCORING & RESEARCH BOUNDARY           │
+========================================================================│=================
+                                                                        │
+                                ┌───────────────────────────────────┐   │
+                                │   Model Serving Inference Engine  │   │
+                                │   (Phase 1 LightGBM E1 Booster)   │   │
+                                │   - Input: Canonical 406 features │   │
+                                │   - Optimal Threshold: 0.616521   │   │
+                                └─────────────────┬─────────────────┘   │
+                                                  │                     │
+                                                  ▼                     ▼
+                                ┌───────────────────────────────────┐ ┌───────────────────┐
+                                │        Transaction Verdict        │ │  Phase 4 Monitor  │
+                                │  • APPROVED (p < 0.616521)        │ │  • PSI Drift Check│
+                                │  • BLOCKED  (p >= 0.616521)       │ │  • Drift Retrain  │
+                                └───────────────────────────────────┘ └───────────────────┘
+```
+
+### Component Structure & Roles
+
+| Directory | Lead Role | Subsystem / Role | Key Commands |
+| :--- | :--- | :--- | :--- |
+| `kafka/` | Member 1 | Event Ingestion, Producers, Partition Affinity, At-Least-Once Delivery | `python kafka/producer/ieee_cis_replay_producer.py --rate 500` |
+| `spark/` | Member 2 | Columnar Parquet Optimization (7.25x), Historical Feature Store, Micro-Batch Streaming | `python spark/benchmarks/run_benchmarks.py` |
+| `flink/` | Member 2 | Sub-Second CEP, 5m/10m Sliding Window Velocity Ratios, Event-Time Watermarking | `python flink/streaming/stream_processor.py` |
+| `cluster/` | Member 1 | 3-Node KRaft Distributed Broker Configurations | `server-1.properties` to `server-3.properties` |
+| `tests/integration/` | Combined | 14-Step End-to-End Multi-Process Integration Test Suite | `python tests/integration/run_full_e2e_integration_test.py` |
+
+### How to Run the End-to-End Pipeline
+
+1. **Run Integration Unit & Contract Tests:**
+   ```powershell
+   python -m unittest kafka/tests/test_spark_flink_integration.py
+   pytest spark/tests/
+   pytest flink/tests/
+   ```
+
+2. **Run Concurrent Multi-Process Streaming Pipeline (Producer + Spark + Flink):**
+   ```powershell
+   python run_kafka_spark_flink_pipeline.py --records 1000 --rate 500 --mode all
+   ```
+
+3. **Run 14-Step Full Integration Verification Suite:**
+   ```powershell
+   python tests/integration/run_full_e2e_integration_test.py
+   ```
+
+---
+
 ## What NOT to Do
 
 | Action | Why not |

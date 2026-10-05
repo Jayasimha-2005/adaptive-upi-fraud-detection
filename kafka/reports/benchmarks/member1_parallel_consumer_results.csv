@@ -1,0 +1,2 @@
+partitions,consumers,active_consumers,standby_consumers,topic,messages_sent,producer_target_rate,producer_actual_rate,total_consumed,aggregate_consumer_throughput,avg_individual_throughput,lost_events,dataset
+6,6,6,0,transactions_p6,6000,2000,1997.64,31000,8905.49,1484.25,0,ieee_cis

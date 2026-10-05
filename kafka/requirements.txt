@@ -1,0 +1,4 @@
+# Member 1 — Apache Kafka Ingestion Layer dependencies
+kafka-python>=2.0.2
+lz4>=4.0.0
+python-snappy>=0.6.1

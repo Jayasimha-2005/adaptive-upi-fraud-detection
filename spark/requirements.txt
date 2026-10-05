@@ -1,0 +1,6 @@
+# Member 2 dependencies; kept separate so the existing root requirements are untouched.
+pyspark>=3.5,<4
+kafka-python>=2.0
+pyyaml>=6.0
+pytest>=7.0
+psutil>=5.9

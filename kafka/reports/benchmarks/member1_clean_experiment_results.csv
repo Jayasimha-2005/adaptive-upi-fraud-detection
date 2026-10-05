@@ -1,0 +1,8 @@
+Experiment,Configuration,Messages Attempted,Successful,Failed,Partitions,Producer Rate (tx/sec),Average Latency (ms),Median Latency (ms),P95 Latency (ms),P99 Latency (ms),Messages Lost,Result
+E1 Throughput,100 tx/sec,2000,2000,0,1,100.04,2.736,2.448,3.675,4.565,0,PASS
+E1 Throughput,500 tx/sec,2000,2000,0,1,442.65,2.127,1.815,3.152,4.083,0,PASS
+E1 Throughput,1000 tx/sec,2000,2000,0,1,421.79,2.238,1.777,2.714,3.335,0,PASS
+E1 Throughput,5000 tx/sec,2000,2000,0,1,494.56,1.891,1.607,2.883,3.786,0,PASS
+E2 Consumer Parallelism,3 partitions + 3 consumers,300,300,0,3,100.21,4.931,4.280,8.215,10.850,0,PASS
+E3 Consumer Failure,crash before offset commit,10,10,0,2,,,,,,0,PASS
+E4 Broker Failure,broker failure during production,300,110,190,1,,,,,,0,PASS

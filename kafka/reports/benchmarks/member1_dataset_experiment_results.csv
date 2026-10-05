@@ -1,0 +1,8 @@
+experiment,parameter,target_rate,actual_throughput,p50_latency_ms,p95_latency_ms,p99_latency_ms,lost_events,dataset
+Exp1_Throughput,100_tx_sec,100,55.82,15.42,30.91,60.48,0,train_transaction.csv
+Exp1_Throughput,500_tx_sec,500,56.93,15.44,30.92,60.45,0,train_transaction.csv
+Exp1_Throughput,1000_tx_sec,1000,56.8,15.35,30.88,33.35,0,train_transaction.csv
+Exp1_Throughput,5000_tx_sec,5000,1118.24,0.03,0.27,0.99,0,train_transaction.csv
+Exp2_Partitions,1_partitions,500,59.15,15.35,29.4,59.58,0,train_transaction.csv
+Exp2_Partitions,3_partitions,500,54.97,15.47,30.7,60.87,0,train_transaction.csv
+Exp2_Partitions,6_partitions,500,57.43,15.43,30.66,31.92,0,train_transaction.csv

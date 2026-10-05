@@ -1,0 +1,22 @@
+spark:
+  app_name_batch: AdaptiveFraud-Spark-Batch
+  app_name_streaming: AdaptiveFraud-Spark-Streaming
+  master: local[*]
+  shuffle_partitions: 8
+
+streaming:
+  watermark: 10 minutes
+  window_5m: 5 minutes
+  window_5m_slide: 1 minute
+  window_10m: 10 minutes
+  window_10m_slide: 1 minute
+  trigger: 5 seconds
+
+kafka:
+  bootstrap_servers: localhost:9092
+  topic: fraud-transactions
+
+paths:
+  batch_output: spark/output/batch
+  streaming_output: spark/output/streaming/features
+  checkpoint: spark/output/streaming/checkpoint

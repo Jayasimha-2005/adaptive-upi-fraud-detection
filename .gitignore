@@ -65,3 +65,9 @@ experiments/E3_hybrid/
 *.pem
 secrets.yaml
 credentials.json
+
+# ── Real-Time Streaming & Distributed Processing Outputs ─────────────────────
+kafka/data/
+spark/output/
+flink/output/
+spark/benchmarks/data/
