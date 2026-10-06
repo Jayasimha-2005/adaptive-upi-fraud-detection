@@ -20,12 +20,20 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --timeout=300 --retries=5 -r requirements.txt
 
 # Copy application source code, E1 model artifacts, and Phase 8 monitoring package
+COPY __init__.py .
 COPY api/ ./api/
+COPY hydration/ ./hydration/
 COPY models/ ./models/
 COPY preprocessing/ ./preprocessing/
 COPY src/ ./src/
 COPY inference/ ./inference/
 COPY monitoring/ ./monitoring/
+
+# Enable both top-level and serving.* package imports inside container
+RUN ln -s /app /app/serving
+
+# Ensure Linux LF line endings for LightGBM model text parser compatibility
+RUN sed -i 's/\r$//' models/E1/model.txt
 
 # Expose FastAPI application port
 EXPOSE 8000

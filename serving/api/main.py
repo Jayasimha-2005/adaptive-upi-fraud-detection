@@ -144,6 +144,7 @@ async def root():
         "docs_url": "/docs",
         "health_url": "/health",
         "predict_url": "/predict",
+        "metrics_url": "/metrics",
     }
 
 
@@ -167,6 +168,19 @@ async def health_check():
         feature_count=MODEL_METADATA["feature_count"],
         decision_threshold=MODEL_METADATA["decision_threshold"],
     )
+
+
+@app.get(
+    "/metrics",
+    summary="Get In-Memory API Performance & Monitoring Metrics",
+    tags=["Monitoring"],
+)
+async def get_metrics():
+    """
+    Returns aggregated in-memory metrics summary from the API monitor.
+    Includes request counts, HTTP status code buckets, and inference latency percentiles.
+    """
+    return monitor.get_summary()
 
 
 @app.post(
