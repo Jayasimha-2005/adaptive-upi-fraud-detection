@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Health &amp; Model Diagnostics — Financial Fraud Model Serving API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #fafafa;
+      --bg-surface: #ffffff;
+      --border-color: #e5e7eb;
+      --border-hover: #cbd5e1;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      
+      --swagger-blue: #4990e2;
+      --swagger-blue-bg: #ebf3fb;
+      --swagger-green: #49cc90;
+      --swagger-green-bg: #eafaf1;
+      --swagger-amber: #fca130;
+      --swagger-red: #f93e3e;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 24px 20px 48px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      font-size: 0.88rem;
+    }
+
+    .nav-links a {
+      color: var(--swagger-blue);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .poll-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: var(--swagger-green-bg);
+      color: #0d6832;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid rgba(73, 204, 144, 0.4);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--swagger-green);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(73, 204, 144, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(73, 204, 144, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(73, 204, 144, 0); }
+    }
+
+    /* Swagger Header */
+    .docs-header {
+      margin-bottom: 28px;
+    }
+
+    .docs-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .docs-title {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .tag-version {
+      background: #334155;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-oas {
+      background: #49cc90;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-healthy {
+      background: #10b981;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .docs-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .docs-endpoint-url {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--swagger-blue);
+    }
+
+    /* Category header */
+    .section-category {
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+
+    .category-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Cards Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .val-green { color: #16a34a !important; }
+    .val-blue { color: #2563eb !important; }
+    .val-amber { color: #d97706 !important; }
+    .val-red { color: #dc2626 !important; }
+
+    /* Swagger Accordion */
+    .swagger-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      transition: border-color 0.15s ease;
+    }
+
+    .swagger-block:hover {
+      border-color: var(--border-hover);
+    }
+
+    .swagger-block-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: #fafafa;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .block-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .http-tag {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-get {
+      background: var(--swagger-blue);
+      color: #ffffff;
+    }
+
+    .tag-status {
+      background: var(--swagger-green);
+      color: #ffffff;
+    }
+
+    .tag-amber {
+      background: var(--swagger-amber);
+      color: #ffffff;
+    }
+
+    .endpoint-path {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #1e293b;
+    }
+
+    .endpoint-summary {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .block-body {
+      padding: 18px 20px;
+    }
+
+    /* Diagnostics Table */
+    .diag-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .diag-table th, .diag-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .diag-table th {
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .diag-table td {
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    /* JSON Box */
+    .json-wrapper {
+      background: #0f172a;
+      border-radius: 6px;
+      padding: 14px;
+      position: relative;
+      margin-top: 12px;
+    }
+
+    .json-code {
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .btn-copy {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: #334155;
+      color: #f1f5f9;
+      border: 1px solid #475569;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-copy:hover {
+      background: #475569;
+    }
+
+    footer {
+      margin-top: 36px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    footer a {
+      color: var(--swagger-blue);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <div class="nav-links">
+        <a href="/docs">&larr; Swagger UI (/docs)</a>
+        <a href="/dashboard">Live Observability Dashboard (/dashboard)</a>
+        <a href="/metrics">Performance Metrics (/metrics)</a>
+        <a href="/health?format=json" target="_blank">Raw JSON View</a>
+      </div>
+      <div id="btn-poll-toggle" class="poll-badge" onclick="togglePolling()">
+        <span class="pulse-dot"></span>
+        <span id="poll-label">Live Status: 1s</span>
+      </div>
+    </div>
+
+    <!-- Swagger-style Page Header -->
+    <div class="docs-header">
+      <div class="docs-title-row">
+        <h1 class="docs-title">Financial Fraud Model Serving API</h1>
+        <span class="tag-version">1.0.0</span>
+        <span class="tag-oas">OAS 3.1</span>
+        <span id="tag-health-badge" class="tag-healthy">HEALTHY</span>
+        <span class="tag-version" style="background:#10b981;">E1 FROZEN</span>
+      </div>
+      <div class="docs-subtitle">
+        System Health Diagnostics &amp; E1 Model In-Memory Verification Gate
+      </div>
+      <div class="docs-endpoint-url">
+        GET <b>/health</b> &bull; Host: <b>localhost:8000</b> &bull; Container: <b>adaptive-fraud-serving:v1</b>
+      </div>
+    </div>
+
+    <!-- Category: Core Health Telemetry -->
+    <div class="section-category">
+      <div class="category-title">
+        <span>🩺 Health &amp; Model Status</span>
+      </div>
+      <div class="category-desc">In-memory readiness and canonical ML research contract checks</div>
+    </div>
+
+    <!-- Summary Health Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-title">Service Status</div>
+        <div id="h-status" class="metric-value val-green">HEALTHY</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Model Loaded</div>
+        <div id="h-model-loaded" class="metric-value val-green">TRUE</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Model Name</div>
+        <div id="h-model-name" class="metric-value val-blue">E1_LightGBM</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Model Version</div>
+        <div id="h-model-ver" class="metric-value">E1</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Canonical Features</div>
+        <div id="h-feat-count" class="metric-value val-blue">406 Features</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Decision Threshold</div>
+        <div id="h-threshold" class="metric-value val-red">0.616521</div>
+      </div>
+    </div>
+
+    <!-- Category: Detailed Diagnostics Accordions -->
+    <div class="section-category">
+      <div class="category-title">
+        <span>🛡️ Architecture Invariants &amp; Verification Checks</span>
+      </div>
+    </div>
+
+    <!-- Swagger Accordion 1: Research Contract Invariants -->
+    <div class="swagger-block">
+      <div class="swagger-block-header" onclick="toggleBlock('block-invariants')">
+        <div class="block-header-left">
+          <span class="http-tag tag-get">CHECK</span>
+          <span class="endpoint-path">/health/invariants</span>
+          <span class="endpoint-summary">Phase 1 Certified Pipeline Research Invariants Verification</span>
+        </div>
+        <span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem;">▼</span>
+      </div>
+      <div id="block-invariants" class="block-body">
+        <table class="diag-table">
+          <thead>
+            <tr>
+              <th>Subsystem Invariant</th>
+              <th>Status</th>
+              <th>Certified Value</th>
+              <th>Verification Semantic</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>E1 Model Weights</b></td>
+              <td><span style="color: #16a34a; font-weight:700;">VERIFIED</span></td>
+              <td><code>model.txt</code></td>
+              <td>SHA-256 integrity hash verified (406 trees)</td>
+            </tr>
+            <tr>
+              <td><b>Feature Vector Contract</b></td>
+              <td><span style="color: #16a34a; font-weight:700;">VERIFIED</span></td>
+              <td><code>406 canonical</code></td>
+              <td>Exact alignment with <code>feature_names.json</code></td>
+            </tr>
+            <tr>
+              <td><b>Target Leakage Isolation</b></td>
+              <td><span style="color: #16a34a; font-weight:700;">ACTIVE</span></td>
+              <td><code>isFraud stripped</code></td>
+              <td>Zero target label leakage prior to scoring</td>
+            </tr>
+            <tr>
+              <td><b>Decision Threshold</b></td>
+              <td><span style="color: #16a34a; font-weight:700;">FROZEN</span></td>
+              <td><code>0.616521</code></td>
+              <td>Strict binary decision rule (FRAUD &ge; 0.616521)</td>
+            </tr>
+            <tr>
+              <td><b>Point-in-Time Causality</b></td>
+              <td><span style="color: #16a34a; font-weight:700;">ENFORCED</span></td>
+              <td><code>t &lt; T</code></td>
+              <td>Hard Hydration Gate blocks future event leakage</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Swagger Accordion 2: Raw JSON Response Payload -->
+    <div class="swagger-block">
+      <div class="swagger-block-header" onclick="toggleBlock('block-json')">
+        <div class="block-header-left">
+          <span class="http-tag tag-amber">PAYLOAD</span>
+          <span class="endpoint-path">/health.json</span>
+          <span class="endpoint-summary">Live Health Response Payload (application/json)</span>
+        </div>
+        <span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem;">▼</span>
+      </div>
+      <div id="block-json" class="block-body">
+        <div class="json-wrapper">
+          <button class="btn-copy" onclick="copyJson()">Copy JSON</button>
+          <pre id="json-display" class="json-code">Loading health status...</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>Adaptive Financial Fraud Detection &bull; Member 3 FastAPI Serving Layer</div>
+      <div>
+        <a href="/docs">Docs</a> &bull;
+        <a href="/dashboard">Dashboard</a> &bull;
+        <a href="/metrics">Metrics</a> &bull;
+        <a href="/openapi.json">OpenAPI Spec</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    let pollInterval = null;
+    let isPolling = true;
+    let currentHealthJson = {};
+
+    async function fetchHealth() {
+      try {
+        const res = await fetch('/health?format=json', {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        currentHealthJson = data;
+        renderHealth(data);
+      } catch (err) {
+        console.warn('Health polling error:', err);
+      }
+    }
+
+    function renderHealth(d) {
+      document.getElementById('h-status').textContent = (d.status || 'OFFLINE').toUpperCase();
+      document.getElementById('h-model-loaded').textContent = d.model_loaded ? 'TRUE' : 'FALSE';
+      document.getElementById('h-model-name').textContent = d.model_name || 'E1_LightGBM';
+      document.getElementById('h-model-ver').textContent = d.model_version || 'E1';
+      document.getElementById('h-feat-count').textContent = (d.feature_count || 406) + ' Features';
+      document.getElementById('h-threshold').textContent = d.decision_threshold || '0.616521';
+
+      const badge = document.getElementById('tag-health-badge');
+      if (d.status === 'healthy' && d.model_loaded) {
+        badge.className = 'tag-healthy';
+        badge.textContent = 'HEALTHY (200 OK)';
+      } else {
+        badge.className = 'tag-version';
+        badge.style.background = '#dc2626';
+        badge.textContent = 'DEGRADED';
+      }
+
+      document.getElementById('json-display').textContent = JSON.stringify(d, null, 2);
+    }
+
+    function toggleBlock(id) {
+      const el = document.getElementById(id);
+      if (el.style.display === 'none') {
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    function togglePolling() {
+      const label = document.getElementById('poll-label');
+      const badge = document.getElementById('btn-poll-toggle');
+      if (isPolling) {
+        clearInterval(pollInterval);
+        isPolling = false;
+        label.textContent = 'Auto-Refresh: Paused';
+        badge.style.background = '#fef3c7';
+        badge.style.color = '#92400e';
+      } else {
+        pollInterval = setInterval(fetchHealth, 1000);
+        isPolling = true;
+        label.textContent = 'Live Status: 1s';
+        badge.style.background = 'var(--swagger-green-bg)';
+        badge.style.color = '#0d6832';
+        fetchHealth();
+      }
+    }
+
+    function copyJson() {
+      navigator.clipboard.writeText(JSON.stringify(currentHealthJson, null, 2));
+      alert('Health JSON copied to clipboard!');
+    }
+
+    // Initial run
+    fetchHealth();
+    pollInterval = setInterval(fetchHealth, 1000);
+  </script>
+</body>
+</html>

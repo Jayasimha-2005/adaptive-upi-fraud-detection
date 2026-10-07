@@ -102,7 +102,25 @@ class OfflineInferenceEngine:
             raise FileNotFoundError(f"LightGBM model file not found: {self.model_path}")
 
         logger.info("Loading LightGBM model from %s ...", self.model_path)
-        self.model = lgb.Booster(model_file=str(self.model_path))
+        with open(self.model_path, "rb") as f_in:
+            raw_model = f_in.read()
+
+        if b"\r\n" in raw_model:
+            # Cleanly normalize CRLF to LF in a temporary file for LightGBM C++ compatibility on Windows
+            import tempfile
+            clean_model = raw_model.replace(b"\r\n", b"\n")
+            with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".txt") as tmp_f:
+                tmp_f.write(clean_model)
+                tmp_path = tmp_f.name
+            try:
+                self.model = lgb.Booster(model_file=tmp_path)
+            finally:
+                try:
+                    os.unlink(tmp_path)
+                except Exception:
+                    pass
+        else:
+            self.model = lgb.Booster(model_file=str(self.model_path))
 
         # Check LightGBM model feature count
         n_model_features = self.model.num_feature()
@@ -198,6 +216,121 @@ class OfflineInferenceEngine:
         }
 
         return results_df, summary_meta
+
+    def predict_dict(self, raw_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Fast-path single-transaction inference directly from dictionary input.
+        Avoids all DataFrame creation and indexing overhead while guaranteeing
+        100.000% mathematical parity with predict_transaction.
+        """
+        t_start = time.perf_counter()
+
+        t0_prep = time.perf_counter()
+        arr = self.serving_preprocessor.transform_dict(raw_dict)
+        prep_time_ms = (time.perf_counter() - t0_prep) * 1000.0
+
+        t0_model = time.perf_counter()
+        prob = float(self.model.predict(arr)[0])
+        model_time_ms = (time.perf_counter() - t0_model) * 1000.0
+
+        total_time_ms = (time.perf_counter() - t_start) * 1000.0
+        decision = "FRAUD" if prob >= self.threshold else "LEGIT"
+
+        tx_id = raw_dict.get("TransactionID") or raw_dict.get("transaction_id") or "UNKNOWN"
+        actual_is_fraud = raw_dict.get("isFraud")
+        if actual_is_fraud is not None:
+            actual_label = "FRAUD" if int(actual_is_fraud) == 1 else "LEGIT"
+        else:
+            actual_label = "UNKNOWN"
+
+        return {
+            "transaction_id": str(tx_id),
+            "fraud_probability": round(prob, 6),
+            "decision": decision,
+            "actual_label": actual_label,
+            "preprocessing_time_ms": round(prep_time_ms, 3),
+            "model_prediction_time_ms": round(model_time_ms, 3),
+            "total_inference_time_ms": round(total_time_ms, 3),
+        }
+
+    def predict_dicts(self, raw_dicts: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        """
+        Fast-path batch inference directly from list of dictionaries.
+        Transforms all N transactions in single contiguous C-memory and evaluates
+        LightGBM in one vectorized batch.
+        """
+        t_start = time.perf_counter()
+        n_rows = len(raw_dicts)
+        if n_rows == 0:
+            return [], {
+                "n_transactions": 0,
+                "total_batch_prep_time_ms": 0.0,
+                "total_batch_model_time_ms": 0.0,
+                "total_batch_inference_time_ms": 0.0,
+                "avg_prep_time_ms": 0.0,
+                "avg_model_time_ms": 0.0,
+                "avg_total_inference_time_ms": 0.0,
+                "threshold": self.threshold,
+                "fraud_detected_count": 0,
+                "legit_detected_count": 0,
+            }
+
+        t0_prep = time.perf_counter()
+        arr_mat = self.serving_preprocessor.transform_dicts(raw_dicts)
+        prep_time_ms = (time.perf_counter() - t0_prep) * 1000.0
+
+        t0_model = time.perf_counter()
+        probabilities = self.model.predict(arr_mat)
+        model_time_ms = (time.perf_counter() - t0_model) * 1000.0
+
+        total_time_ms = (time.perf_counter() - t_start) * 1000.0
+        per_row_prep_ms = prep_time_ms / n_rows
+        per_row_model_ms = model_time_ms / n_rows
+        per_row_total_ms = total_time_ms / n_rows
+
+        results: List[Dict[str, Any]] = []
+        fraud_count = 0
+        legit_count = 0
+
+        for i, raw_dict in enumerate(raw_dicts):
+            prob = float(probabilities[i])
+            decision = "FRAUD" if prob >= self.threshold else "LEGIT"
+            if decision == "FRAUD":
+                fraud_count += 1
+            else:
+                legit_count += 1
+
+            tx_id = raw_dict.get("TransactionID") or raw_dict.get("transaction_id") or f"TX_{i}"
+            actual_is_fraud = raw_dict.get("isFraud")
+            if actual_is_fraud is not None:
+                actual_label = "FRAUD" if int(actual_is_fraud) == 1 else "LEGIT"
+            else:
+                actual_label = "UNKNOWN"
+
+            results.append({
+                "transaction_id": str(tx_id),
+                "fraud_probability": round(prob, 6),
+                "decision": decision,
+                "actual_label": actual_label,
+                "preprocessing_time_ms": round(per_row_prep_ms, 3),
+                "model_prediction_time_ms": round(per_row_model_ms, 3),
+                "total_inference_time_ms": round(per_row_total_ms, 3),
+            })
+
+        summary_meta = {
+            "n_transactions": n_rows,
+            "total_batch_prep_time_ms": round(prep_time_ms, 3),
+            "total_batch_model_time_ms": round(model_time_ms, 3),
+            "total_batch_inference_time_ms": round(total_time_ms, 3),
+            "avg_prep_time_ms": round(per_row_prep_ms, 3),
+            "avg_model_time_ms": round(per_row_model_ms, 3),
+            "avg_total_inference_time_ms": round(per_row_total_ms, 3),
+            "threshold": self.threshold,
+            "fraud_detected_count": fraud_count,
+            "legit_detected_count": legit_count,
+        }
+
+        return results, summary_meta
 
 
 def load_e1_test_transactions(

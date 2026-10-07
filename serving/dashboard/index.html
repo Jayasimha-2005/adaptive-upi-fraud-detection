@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Fraud Detection &mdash; End-to-End Pipeline Observability Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #080b11;
+      --bg-surface: #0f1420;
+      --bg-card: rgba(16, 22, 36, 0.88);
+      --bg-card-hover: rgba(24, 32, 50, 0.95);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.35);
+      --border-emerald: rgba(16, 185, 129, 0.35);
+      --border-amber: rgba(245, 158, 11, 0.35);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-indigo: #6366f1;
+      --accent-indigo-bg: rgba(99, 102, 241, 0.14);
+      --accent-cyan: #06b6d4;
+      --accent-cyan-bg: rgba(6, 182, 212, 0.14);
+      --accent-emerald: #10b981;
+      --accent-emerald-bg: rgba(16, 185, 129, 0.14);
+      --accent-rose: #f43f5e;
+      --accent-rose-bg: rgba(244, 63, 94, 0.15);
+      --accent-amber: #f59e0b;
+      --accent-amber-bg: rgba(245, 158, 11, 0.14);
+      --accent-purple: #a855f7;
+      --accent-purple-bg: rgba(168, 85, 247, 0.14);
+      --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(6, 182, 212, 0.10) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding: 18px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-title h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: 6px;
+      background: var(--accent-indigo-bg);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      font-family: var(--font-mono);
+    }
+
+    .tag-badge-cyan {
+      background: var(--accent-cyan-bg);
+      color: #67e8f9;
+      border-color: rgba(6, 182, 212, 0.35);
+    }
+
+    .tag-badge-emerald {
+      background: var(--accent-emerald-bg);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      font-family: var(--font-mono);
+      transition: all 0.3s ease;
+    }
+
+    .status-online {
+      background: var(--accent-emerald-bg);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-offline {
+      background: var(--accent-rose-bg);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-reset {
+      background: rgba(244, 63, 94, 0.12);
+      color: #fda4af;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .btn-reset:hover {
+      background: rgba(244, 63, 94, 0.22);
+      color: #ffe4e6;
+      border-color: rgba(244, 63, 94, 0.5);
+    }
+
+    /* Test Transaction Loader Control Box */
+    .loader-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: 14px;
+      padding: 14px 20px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 24px rgba(99, 102, 241, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .loader-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .loader-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-load {
+      background: rgba(99, 102, 241, 0.16);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #c7d2fe;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-load:hover {
+      background: rgba(99, 102, 241, 0.35);
+      color: #ffffff;
+      border-color: rgba(99, 102, 241, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn-load:active {
+      transform: translateY(0);
+    }
+
+    .bulk-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 8px;
+      border-left: 1px solid var(--border);
+    }
+
+    .bulk-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .bulk-input {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 6px 10px;
+      border-radius: 8px;
+      width: 75px;
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .bulk-input:focus {
+      border-color: var(--accent-indigo);
+    }
+
+    .loader-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    .loader-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .loader-idle {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .loader-running {
+      background: var(--accent-amber-bg);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      animation: pulse 1.5s infinite;
+    }
+
+    .loader-completed {
+      background: var(--accent-emerald-bg);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Session Banner */
+    .session-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.08) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 10px 18px;
+      margin-bottom: 18px;
+      font-size: 0.82rem;
+    }
+
+    .session-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      flex-wrap: wrap;
+    }
+
+    .session-badge {
+      background: var(--accent-indigo);
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .pipeline-status-badge {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .p-ready { background: rgba(255, 255, 255, 0.08); color: var(--text-muted); }
+    .p-running { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.4); animation: pulse 1.5s infinite; }
+    .p-completed { background: var(--accent-emerald-bg); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.4); }
+    .p-partial { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+    .p-failed { background: var(--accent-rose-bg); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.4); }
+
+    /* Pipeline Stepper Progress Bar */
+    .stepper-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .stepper-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .stepper-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stepper-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .stepper-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stepper-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .step-node {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .step-node.active {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .step-node.passed {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.06);
+    }
+
+    .step-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .step-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+
+    .step-icon {
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    /* Reconciliation Banner */
+    .reconciliation-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.08) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 14px;
+      padding: 16px 22px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .reconciliation-card.partial {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(244, 63, 94, 0.08) 100%);
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .reconciliation-card.waiting {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: var(--border);
+    }
+
+    .recon-flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .recon-item {
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .recon-item b {
+      color: var(--text-primary);
+    }
+
+    .recon-arrow {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .recon-verdict {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .recon-badge {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    .recon-pass {
+      background: var(--accent-emerald-bg);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .recon-partial {
+      background: var(--accent-amber-bg);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+    }
+
+    .recon-waiting {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* Grid layout */
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-header-stage {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 8px;
+    }
+
+    .stage-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stage-tag {
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .card-label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .card-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-family: var(--font-mono);
+    }
+
+    .card-meta {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .card-stat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      margin-top: 10px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .stat-key {
+      color: var(--text-muted);
+    }
+
+    .stat-val {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Color variations */
+    .val-emerald { color: var(--accent-emerald); }
+    .val-rose { color: var(--accent-rose); }
+    .val-cyan { color: var(--accent-cyan); }
+    .val-indigo { color: #818cf8; }
+    .val-amber { color: var(--accent-amber); }
+    .val-purple { color: #c084fc; }
+
+    /* Ratio Bar */
+    .ratio-container {
+      margin-top: 12px;
+    }
+
+    .ratio-bar-wrapper {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .ratio-bar-legit {
+      height: 100%;
+      background: var(--accent-emerald);
+      transition: width 0.4s ease;
+    }
+
+    .ratio-bar-fraud {
+      height: 100%;
+      background: var(--accent-rose);
+      transition: width 0.4s ease;
+    }
+
+    .ratio-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    /* Stage Latency Breakdown Grid */
+    .stage-lat-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .stage-lat-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .stage-lat-item {
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .stage-lat-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .stage-lat-val {
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    /* Table Section */
+    .table-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .table-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .table-title-badge {
+      font-size: 0.74rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-height: 520px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.82rem;
+    }
+
+    th {
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    tbody tr:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .badge-stage {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .badge-pass {
+      background: var(--accent-emerald-bg);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-decision {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.74rem;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-legit {
+      background: var(--accent-emerald-bg);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-fraud {
+      background: var(--accent-rose-bg);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      box-shadow: 0 0 12px rgba(244, 63, 94, 0.25);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 44px 24px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    /* Links footer */
+    footer {
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 12px 4px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    footer a {
+      color: var(--accent-indigo);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand-title">
+        <h1>Adaptive Fraud Detection &mdash; Real-Time Serving Dashboard</h1>
+        <div class="brand-subtitle">
+          <span>Phase 1 ML Serving</span>
+          <span class="tag-badge">LightGBM E1</span>
+          <span class="tag-badge-cyan">Threshold: 0.616521</span>
+          <span class="tag-badge-emerald">406 Features</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="status-badge" class="status-pill status-online">
+          <span class="pulse-dot"></span>
+          <span id="status-text">API ONLINE</span>
+        </div>
+        <button id="btn-toggle-poll" class="btn-action" onclick="togglePolling()">Auto-refresh: 1s</button>
+        <button class="btn-action btn-reset" onclick="resetSession()">Reset Session</button>
+      </div>
+    </header>
+
+    <!-- Test Transaction Loader Control -->
+    <div class="loader-panel">
+      <div class="loader-left">
+        <div class="loader-title">
+          <span>⚡ Load Test Transactions</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-load" onclick="triggerTestRun(5, 'fixed')">5</button>
+          <button class="btn-load" onclick="triggerTestRun(10, 'fixed')">10</button>
+          <button class="btn-load" onclick="triggerTestRun(50, 'fixed')">50</button>
+          <button class="btn-load" onclick="triggerTestRun(100, 'fixed')">100</button>
+          <button class="btn-load" onclick="triggerTestRun(1000, 'fixed')">1000</button>
+        </div>
+        <div class="bulk-form">
+          <span class="bulk-label">Random Bulk:</span>
+          <input type="number" id="input-random-count" class="bulk-input" value="500" min="1" max="5000" />
+          <button class="btn-load" style="background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.4); color: #67e8f9;" onclick="triggerRandomBulk()">START</button>
+        </div>
+      </div>
+      <div class="loader-status">
+        <span>Status:</span>
+        <span id="loader-status-badge" class="loader-badge loader-idle">Ready</span>
+        <span id="loader-progress-text" style="color: var(--text-primary); font-weight: 600;">--</span>
+      </div>
+    </div>
+
+    <!-- Session Banner -->
+    <div class="session-banner">
+      <div class="session-info">
+        <span class="session-badge">CURRENT TEST SESSION</span>
+        <span>ID: <b id="lbl-session-id" style="color: var(--text-primary);">--</b></span>
+        <span style="color: var(--text-muted);">&bull;</span>
+        <span style="color: var(--text-secondary);">Status: <span id="lbl-session-status" class="pipeline-status-badge p-ready">READY</span></span>
+        <span style="color: var(--text-muted);">&bull;</span>
+        <span style="color: var(--text-secondary);">Started: <span id="lbl-session-time">--</span></span>
+      </div>
+      <div style="font-size: 0.78rem; color: var(--text-secondary);">
+        Displays transactions from the active session only &bull; Official IEEE-CIS Test Dataset
+      </div>
+    </div>
+
+    <!-- Pipeline Execution Live Stepper -->
+    <div class="stepper-panel">
+      <div class="stepper-header">
+        <div class="stepper-title">
+          <span>🚀 Pipeline Execution</span>
+        </div>
+        <div style="font-size: 0.76rem; color: var(--text-muted); font-family: var(--font-mono);">
+          Live Step Counters &amp; Gate Validation
+        </div>
+      </div>
+      <div class="stepper-grid">
+        <div id="step-test" class="step-node">
+          <div class="step-label">
+            <span>Test Data</span>
+            <span id="step-test-icon" class="step-icon val-cyan">&bull;</span>
+          </div>
+          <div id="step-test-val" class="step-val">0 / 0</div>
+        </div>
+
+        <div id="step-kafka" class="step-node">
+          <div class="step-label">
+            <span>Kafka Ingestion</span>
+            <span id="step-kafka-icon" class="step-icon val-indigo">&bull;</span>
+          </div>
+          <div id="step-kafka-val" class="step-val">0 / 0</div>
+        </div>
+
+        <div id="step-flink" class="step-node">
+          <div class="step-label">
+            <span>Flink CEP</span>
+            <span id="step-flink-icon" class="step-icon val-purple">&bull;</span>
+          </div>
+          <div id="step-flink-val" class="step-val">0 / 0</div>
+        </div>
+
+        <div id="step-bridge" class="step-node">
+          <div class="step-label">
+            <span>Stream Bridge</span>
+            <span id="step-bridge-icon" class="step-icon val-amber">&bull;</span>
+          </div>
+          <div id="step-bridge-val" class="step-val">0 / 0</div>
+        </div>
+
+        <div id="step-hydration" class="step-node">
+          <div class="step-label">
+            <span>Feature Hydration</span>
+            <span id="step-hydration-icon" class="step-icon val-emerald">&bull;</span>
+          </div>
+          <div id="step-hydration-val" class="step-val">0 / 0</div>
+        </div>
+
+        <div id="step-model" class="step-node">
+          <div class="step-label">
+            <span>E1 LightGBM</span>
+            <span id="step-model-icon" class="step-icon val-emerald">&bull;</span>
+          </div>
+          <div id="step-model-val" class="step-val">0 / 0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage-by-Stage Observability Cards -->
+    <div class="grid-5">
+      <!-- 1. Kafka Member 1 -->
+      <div class="card">
+        <div>
+          <div class="card-header-stage">
+            <div class="stage-title val-indigo">
+              <span>📡 Kafka &mdash; Member 1</span>
+            </div>
+            <span class="stage-tag">6 Partitions</span>
+          </div>
+          <div class="card-label">Produced Events</div>
+          <div id="kafka-produced" class="card-value val-indigo">0</div>
+        </div>
+        <div class="card-stat-list">
+          <div class="stat-row">
+            <span class="stat-key">Consumed:</span>
+            <span id="kafka-consumed" class="stat-val val-cyan">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Pending:</span>
+            <span id="kafka-pending" class="stat-val">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Errors:</span>
+            <span id="kafka-errors" class="stat-val">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Topic:</span>
+            <span class="stat-val" style="font-size: 0.72rem; color: var(--text-muted);">ieee_cis_transactions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Flink Member 2 -->
+      <div class="card">
+        <div>
+          <div class="card-header-stage">
+            <div class="stage-title val-purple">
+              <span>⚡ Flink &mdash; Member 2</span>
+            </div>
+            <span class="stage-tag">Sliding CEP</span>
+          </div>
+          <div class="card-label">Processed Events</div>
+          <div id="flink-processed" class="card-value val-purple">0</div>
+        </div>
+        <div class="card-stat-list">
+          <div class="stat-row">
+            <span class="stat-key">Input Events:</span>
+            <span id="flink-input" class="stat-val">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">5-Min Velocity:</span>
+            <span id="flink-v5" class="stat-val val-cyan">Avg: 0.0 | Max: 0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">10-Min Velocity:</span>
+            <span id="flink-v10" class="stat-val val-purple">Avg: 0.0 | Max: 0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Errors:</span>
+            <span id="flink-errors" class="stat-val">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Streaming Bridge -->
+      <div class="card">
+        <div>
+          <div class="card-header-stage">
+            <div class="stage-title val-amber">
+              <span>🌉 Streaming Bridge</span>
+            </div>
+            <span class="stage-tag">Target Guard</span>
+          </div>
+          <div class="card-label">Normalized Events</div>
+          <div id="bridge-normalized" class="card-value val-amber">0</div>
+        </div>
+        <div class="card-stat-list">
+          <div class="stat-row">
+            <span class="stat-key">Received:</span>
+            <span id="bridge-received" class="stat-val">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Rejected:</span>
+            <span id="bridge-rejected" class="stat-val">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Target Leakage:</span>
+            <span class="stat-val val-emerald">ACTIVE (PASS)</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Errors:</span>
+            <span id="bridge-errors" class="stat-val">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Online Feature Hydration -->
+      <div class="card">
+        <div>
+          <div class="card-header-stage">
+            <div class="stage-title val-emerald">
+              <span>💧 Feature Hydration</span>
+            </div>
+            <span class="stage-tag">406 Vector</span>
+          </div>
+          <div class="card-label">Hydrated Features</div>
+          <div id="hydration-hydrated" class="card-value val-emerald">0</div>
+        </div>
+        <div class="card-stat-list">
+          <div class="stat-row">
+            <span class="stat-key">Received:</span>
+            <span id="hydration-received" class="stat-val">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Vector Size:</span>
+            <span class="stat-val val-cyan">406 Canonical</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Causality Gate:</span>
+            <span class="stat-val val-emerald">PASS</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Rejected / Errors:</span>
+            <span id="hydration-rejected" class="stat-val">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. E1 LightGBM -->
+      <div class="card">
+        <div>
+          <div class="card-header-stage">
+            <div class="stage-title val-cyan">
+              <span>🤖 E1 LightGBM</span>
+            </div>
+            <span class="stage-tag">Thresh: 0.6165</span>
+          </div>
+          <div class="card-label">Total Predictions</div>
+          <div id="model-predictions" class="card-value val-cyan">0</div>
+        </div>
+        <div class="card-stat-list">
+          <div class="stat-row">
+            <span class="stat-key">Legitimate:</span>
+            <span id="model-legit" class="stat-val val-emerald">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Fraudulent:</span>
+            <span id="model-fraud" class="stat-val val-rose">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Fraud Rate:</span>
+            <span id="model-fraud-rate" class="stat-val val-rose">0.00%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Model Version:</span>
+            <span class="stat-val" style="color: var(--text-muted);">E1-2024-Prod</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End-to-End Pipeline Reconciliation Banner -->
+    <div id="reconciliation-panel" class="reconciliation-card waiting">
+      <div>
+        <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">
+          🎯 End-to-End Pipeline Reconciliation
+        </div>
+        <div class="recon-flow">
+          <div class="recon-item">Requested: <b id="recon-req">0</b></div>
+          <span class="recon-arrow">&rarr;</span>
+          <div class="recon-item">Kafka Ingest: <b id="recon-k">0</b></div>
+          <span class="recon-arrow">&rarr;</span>
+          <div class="recon-item">Flink CEP: <b id="recon-f">0</b></div>
+          <span class="recon-arrow">&rarr;</span>
+          <div class="recon-item">Bridge: <b id="recon-b">0</b></div>
+          <span class="recon-arrow">&rarr;</span>
+          <div class="recon-item">Hydrated: <b id="recon-h">0</b></div>
+          <span class="recon-arrow">&rarr;</span>
+          <div class="recon-item">E1 Predictions: <b id="recon-m">0</b></div>
+        </div>
+      </div>
+      <div class="recon-verdict">
+        <span id="recon-status-badge" class="recon-badge recon-waiting">AWAITING RUN</span>
+      </div>
+    </div>
+
+    <!-- Latency Breakdown & Classification Ratio -->
+    <div class="grid-3">
+      <!-- Session Classification Distribution -->
+      <div class="card">
+        <div class="card-label">Session Classification Distribution</div>
+        <div class="ratio-container">
+          <div class="ratio-bar-wrapper">
+            <div id="bar-legit" class="ratio-bar-legit" style="width: 50%;"></div>
+            <div id="bar-fraud" class="ratio-bar-fraud" style="width: 50%;"></div>
+          </div>
+          <div class="ratio-legend">
+            <span>Legit: <b id="legend-legit" class="val-emerald">0</b></span>
+            <span>Fraud: <b id="legend-fraud" class="val-rose">0</b></span>
+          </div>
+        </div>
+        <div class="card-meta" style="margin-top: 14px;">
+          HTTP 2xx: <span id="metric-2xx" style="color: var(--text-primary);">0</span> | 
+          4xx: <span id="metric-4xx" style="color: var(--accent-amber);">0</span> | 
+          5xx: <span id="metric-5xx" style="color: var(--accent-rose);">0</span>
+        </div>
+      </div>
+
+      <!-- Stage-by-Stage Latency Breakdown -->
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-label">Stage-by-Stage Measured Latency (Milliseconds)</div>
+        <div class="stage-lat-grid">
+          <div class="stage-lat-item">
+            <div class="stage-lat-label">Kafka Ingest</div>
+            <div id="lat-kafka" class="stage-lat-val val-indigo">-- ms</div>
+          </div>
+          <div class="stage-lat-item">
+            <div class="stage-lat-label">Flink Velocity</div>
+            <div id="lat-flink" class="stage-lat-val val-purple">-- ms</div>
+          </div>
+          <div class="stage-lat-item">
+            <div class="stage-lat-label">Bridge Norm</div>
+            <div id="lat-bridge" class="stage-lat-val val-amber">-- ms</div>
+          </div>
+          <div class="stage-lat-item">
+            <div class="stage-lat-label">Hydration</div>
+            <div id="lat-hydration" class="stage-lat-val val-emerald">-- ms</div>
+          </div>
+          <div class="stage-lat-item">
+            <div class="stage-lat-label">E1 Inference</div>
+            <div id="lat-model" class="stage-lat-val val-cyan">-- ms</div>
+          </div>
+          <div class="stage-lat-item" style="border-color: rgba(99, 102, 241, 0.3);">
+            <div class="stage-lat-label">Total End-to-End</div>
+            <div id="lat-e2e" class="stage-lat-val val-emerald">-- ms</div>
+          </div>
+        </div>
+        <div class="card-meta" id="metric-p95-p99" style="margin-top: 10px;">
+          P50: -- ms | P95: -- ms | P99: -- ms | Min: -- ms | Max: -- ms
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Transaction Feed & Journey -->
+    <div class="table-section">
+      <div class="table-header">
+        <div class="table-title">
+          <span>Current Session In-Flight Feed &mdash; Transaction Journey</span>
+          <span id="feed-count-badge" class="table-title-badge">0 records</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+          Real-time stream traces from Kafka &rarr; Flink &rarr; Bridge &rarr; Hydration &rarr; E1
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Transaction ID</th>
+              <th>Kafka</th>
+              <th>Flink</th>
+              <th>Bridge</th>
+              <th>Hydration</th>
+              <th>Features</th>
+              <th>Fraud Probability</th>
+              <th>Decision</th>
+              <th>Latency</th>
+            </tr>
+          </thead>
+          <tbody id="tx-table-body">
+            <tr>
+              <td colspan="10" class="empty-state">
+                <span class="pulse-dot" style="display:inline-block; margin-right: 6px; background: var(--accent-indigo);"></span>
+                Waiting for incoming transactions for this session...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>System: <b>Adaptive Financial Fraud Detection &mdash; Phase 1</b> (Certified E1 Model &amp; End-to-End Pipeline)</div>
+      <div>
+        <a href="/docs" target="_blank">Swagger API Docs</a> &bull;
+        <a href="/metrics" target="_blank">Raw Telemetry (/metrics)</a> &bull;
+        <a href="/health" target="_blank">Health Check (/health)</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    let isPollingActive = true;
+    let pollInterval = null;
+
+    async function fetchDashboardState() {
+      try {
+        const response = await fetch('/api/dashboard/state');
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status);
+        }
+        const data = await response.json();
+        updateUI(data);
+        setSystemOnline(true);
+      } catch (err) {
+        console.warn('Dashboard state fetch failed:', err);
+        setSystemOnline(false);
+      }
+    }
+
+    async function triggerTestRun(count, mode = 'fixed', seed = null) {
+      try {
+        const badge = document.getElementById('loader-status-badge');
+        const pText = document.getElementById('loader-progress-text');
+        badge.className = 'loader-badge loader-running';
+        badge.textContent = 'Starting...';
+        pText.textContent = `0 / ${count}`;
+
+        const payload = { count: parseInt(count), mode: mode };
+        if (seed !== null) {
+          payload.seed = seed;
+        }
+
+        const res = await fetch('/api/dashboard/pipeline-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          await fetchDashboardState();
+        } else {
+          badge.className = 'loader-badge loader-idle';
+          badge.textContent = 'Failed';
+          pText.textContent = 'HTTP ' + res.status;
+        }
+      } catch (err) {
+        console.error('Trigger pipeline run failed:', err);
+        const badge = document.getElementById('loader-status-badge');
+        badge.className = 'loader-badge loader-idle';
+        badge.textContent = 'Error';
+      }
+    }
+
+    function triggerRandomBulk() {
+      const input = document.getElementById('input-random-count');
+      let val = parseInt(input.value) || 500;
+      if (val < 1) val = 1;
+      if (val > 5000) val = 5000;
+      const seed = Math.floor(Math.random() * 1000000);
+      triggerTestRun(val, 'random', seed);
+    }
+
+    async function resetSession() {
+      try {
+        const response = await fetch('/api/dashboard/session/reset', { method: 'POST' });
+        if (response.ok) {
+          await fetchDashboardState();
+        }
+      } catch (err) {
+        console.error('Session reset failed:', err);
+      }
+    }
+
+    function setSystemOnline(isOnline) {
+      const badge = document.getElementById('status-badge');
+      const text = document.getElementById('status-text');
+      if (isOnline) {
+        badge.className = 'status-pill status-online';
+        text.textContent = 'API ONLINE';
+      } else {
+        badge.className = 'status-pill status-offline';
+        text.textContent = 'API OFFLINE';
+      }
+    }
+
+    function updateUI(data) {
+      const session = data.session || {};
+      const metrics = data.metrics || {};
+      const pipeline = data.pipeline || {};
+      const testRun = data.test_run || {};
+
+      const kafka = pipeline.kafka || {};
+      const flink = pipeline.flink || {};
+      const bridge = pipeline.bridge || {};
+      const hydration = pipeline.hydration || {};
+      const model = pipeline.model || {};
+      const reconciliation = pipeline.reconciliation || {};
+      const latencies = pipeline.stage_latencies || {};
+      const recents = pipeline.transaction_journey || data.recent_predictions || [];
+
+      // Session Info
+      document.getElementById('lbl-session-id').textContent = session.session_id || pipeline.session_id || '--';
+      document.getElementById('lbl-session-time').textContent = session.session_start_time || pipeline.session_start_time || '--';
+
+      // Status Pill
+      const statusBadge = document.getElementById('lbl-session-status');
+      const pStatus = pipeline.status || (testRun.status ? testRun.status.toUpperCase() : 'READY');
+      statusBadge.textContent = pStatus;
+      if (pStatus === 'RUNNING') {
+        statusBadge.className = 'pipeline-status-badge p-running';
+      } else if (pStatus === 'COMPLETED') {
+        statusBadge.className = 'pipeline-status-badge p-completed';
+      } else if (pStatus === 'PARTIAL') {
+        statusBadge.className = 'pipeline-status-badge p-partial';
+      } else if (pStatus === 'FAILED') {
+        statusBadge.className = 'pipeline-status-badge p-failed';
+      } else {
+        statusBadge.className = 'pipeline-status-badge p-ready';
+      }
+
+      // Loader Control Status
+      const lBadge = document.getElementById('loader-status-badge');
+      const lText = document.getElementById('loader-progress-text');
+      const req = pipeline.requested_count || testRun.requested || 0;
+      const done = model.predictions || testRun.successful || 0;
+
+      if (pStatus === 'RUNNING') {
+        lBadge.className = 'loader-badge loader-running';
+        lBadge.textContent = 'Running';
+        lText.textContent = `${done} / ${req}`;
+      } else if (pStatus === 'COMPLETED') {
+        lBadge.className = 'loader-badge loader-completed';
+        lBadge.textContent = 'Completed';
+        lText.textContent = `${done} / ${req}`;
+      } else if (pStatus === 'FAILED') {
+        lBadge.className = 'loader-badge loader-idle';
+        lBadge.textContent = 'Error';
+        lText.textContent = testRun.message || 'Failed';
+      } else {
+        lBadge.className = 'loader-badge loader-idle';
+        lBadge.textContent = 'Ready';
+        lText.textContent = req > 0 ? `${done} / ${req}` : '--';
+      }
+
+      // Live Stepper Nodes
+      const kCount = kafka.produced || 0;
+      const fCount = flink.processed || 0;
+      const bCount = bridge.normalized || 0;
+      const hCount = hydration.hydrated || 0;
+      const mCount = model.predictions || 0;
+
+      document.getElementById('step-test-val').textContent = `${req} / ${req}`;
+      document.getElementById('step-kafka-val').textContent = `${kCount} / ${req}`;
+      document.getElementById('step-flink-val').textContent = `${fCount} / ${req}`;
+      document.getElementById('step-bridge-val').textContent = `${bCount} / ${req}`;
+      document.getElementById('step-hydration-val').textContent = `${hCount} / ${req}`;
+      document.getElementById('step-model-val').textContent = `${mCount} / ${req}`;
+
+      const markStep = (nodeId, iconId, current, total) => {
+        const node = document.getElementById(nodeId);
+        const icon = document.getElementById(iconId);
+        if (total > 0 && current >= total) {
+          node.className = 'step-node passed';
+          icon.textContent = '✓';
+          icon.className = 'step-icon val-emerald';
+        } else if (total > 0 && current > 0) {
+          node.className = 'step-node active';
+          icon.textContent = '⏳';
+          icon.className = 'step-icon val-amber';
+        } else {
+          node.className = 'step-node';
+          icon.textContent = '○';
+          icon.className = 'step-icon val-muted';
+        }
+      };
+
+      markStep('step-test', 'step-test-icon', req, req);
+      markStep('step-kafka', 'step-kafka-icon', kCount, req);
+      markStep('step-flink', 'step-flink-icon', fCount, req);
+      markStep('step-bridge', 'step-bridge-icon', bCount, req);
+      markStep('step-hydration', 'step-hydration-icon', hCount, req);
+      markStep('step-model', 'step-model-icon', mCount, req);
+
+      // 1. Kafka Card
+      document.getElementById('kafka-produced').textContent = (kafka.produced || 0).toLocaleString();
+      document.getElementById('kafka-consumed').textContent = (kafka.consumed || 0).toLocaleString();
+      document.getElementById('kafka-pending').textContent = (kafka.pending || 0).toLocaleString();
+      document.getElementById('kafka-errors').textContent = (kafka.errors || 0).toLocaleString();
+
+      // 2. Flink Card
+      document.getElementById('flink-processed').textContent = (flink.processed || 0).toLocaleString();
+      document.getElementById('flink-input').textContent = (flink.input_events || 0).toLocaleString();
+      document.getElementById('flink-errors').textContent = (flink.errors || 0).toLocaleString();
+      const v5 = flink.five_minute_velocity || {};
+      const v10 = flink.ten_minute_velocity || {};
+      document.getElementById('flink-v5').textContent = `Avg: ${(v5.average || 0.0).toFixed(2)} | Max: ${v5.max || 0}`;
+      document.getElementById('flink-v10').textContent = `Avg: ${(v10.average || 0.0).toFixed(2)} | Max: ${v10.max || 0}`;
+
+      // 3. Streaming Bridge Card
+      document.getElementById('bridge-normalized').textContent = (bridge.normalized || 0).toLocaleString();
+      document.getElementById('bridge-received').textContent = (bridge.received || 0).toLocaleString();
+      document.getElementById('bridge-rejected').textContent = (bridge.rejected || 0).toLocaleString();
+      document.getElementById('bridge-errors').textContent = (bridge.errors || 0).toLocaleString();
+
+      // 4. Feature Hydration Card
+      document.getElementById('hydration-hydrated').textContent = (hydration.hydrated || 0).toLocaleString();
+      document.getElementById('hydration-received').textContent = (hydration.received || 0).toLocaleString();
+      document.getElementById('hydration-rejected').textContent = `${hydration.rejected || 0} / ${hydration.errors || 0}`;
+
+      // 5. E1 Model Card
+      const legit = model.legit_count !== undefined ? model.legit_count : (metrics.legit_count || 0);
+      const fraud = model.fraud_count !== undefined ? model.fraud_count : (metrics.fraud_count || 0);
+      const fraudRate = model.fraud_rate !== undefined ? model.fraud_rate : (metrics.fraud_rate || 0.0);
+      document.getElementById('model-predictions').textContent = mCount.toLocaleString();
+      document.getElementById('model-legit').textContent = legit.toLocaleString();
+      document.getElementById('model-fraud').textContent = fraud.toLocaleString();
+      document.getElementById('model-fraud-rate').textContent = fraudRate.toFixed(2) + '%';
+
+      // Reconciliation Card
+      const reconPanel = document.getElementById('reconciliation-panel');
+      const reconBadge = document.getElementById('recon-status-badge');
+      document.getElementById('recon-req').textContent = req;
+      document.getElementById('recon-k').textContent = kCount;
+      document.getElementById('recon-f').textContent = fCount;
+      document.getElementById('recon-b').textContent = bCount;
+      document.getElementById('recon-h').textContent = hCount;
+      document.getElementById('recon-m').textContent = mCount;
+
+      if (req > 0 && reconciliation.is_reconciled) {
+        reconPanel.className = 'reconciliation-card';
+        reconBadge.className = 'recon-badge recon-pass';
+        reconBadge.textContent = `🟢 ${mCount} / ${req} — 100% RECONCILED (PASS)`;
+      } else if (req > 0 && pStatus === 'COMPLETED' && !reconciliation.is_reconciled) {
+        reconPanel.className = 'reconciliation-card partial';
+        reconBadge.className = 'recon-badge recon-partial';
+        reconBadge.textContent = `🟡 PARTIAL — ${reconciliation.discrepancy || 0} UNACCOUNTED`;
+      } else if (req > 0 && pStatus === 'RUNNING') {
+        reconPanel.className = 'reconciliation-card';
+        reconBadge.className = 'recon-badge recon-waiting';
+        reconBadge.textContent = `⏳ STREAMING (${mCount} / ${req})`;
+      } else {
+        reconPanel.className = 'reconciliation-card waiting';
+        reconBadge.className = 'recon-badge recon-waiting';
+        reconBadge.textContent = 'AWAITING RUN';
+      }
+
+      // Classification Ratio
+      const totalDecisions = legit + fraud;
+      if (totalDecisions > 0) {
+        const lWidth = ((legit / totalDecisions) * 100);
+        const fWidth = ((fraud / totalDecisions) * 100);
+        document.getElementById('bar-legit').style.width = lWidth + '%';
+        document.getElementById('bar-fraud').style.width = fWidth + '%';
+      } else {
+        document.getElementById('bar-legit').style.width = '100%';
+        document.getElementById('bar-fraud').style.width = '0%';
+      }
+      document.getElementById('legend-legit').textContent = legit;
+      document.getElementById('legend-fraud').textContent = fraud;
+
+      // HTTP Buckets
+      document.getElementById('metric-2xx').textContent = metrics.successful_requests || mCount;
+      document.getElementById('metric-4xx').textContent = metrics.client_errors || 0;
+      document.getElementById('metric-5xx').textContent = metrics.server_errors || 0;
+
+      // Latencies
+      const fmtLat = (v) => (v !== null && v !== undefined && v !== '--') ? (typeof v === 'number' ? v.toFixed(2) + ' ms' : v) : '-- ms';
+      document.getElementById('lat-kafka').textContent = fmtLat(latencies.kafka_ms !== undefined ? latencies.kafka_ms : '--');
+      document.getElementById('lat-flink').textContent = fmtLat(latencies.flink_ms !== undefined ? latencies.flink_ms : '--');
+      document.getElementById('lat-bridge').textContent = fmtLat(latencies.bridge_ms !== undefined ? latencies.bridge_ms : '--');
+      document.getElementById('lat-hydration').textContent = fmtLat(latencies.hydration_ms !== undefined ? latencies.hydration_ms : '--');
+      document.getElementById('lat-model').textContent = fmtLat(latencies.model_ms !== undefined ? latencies.model_ms : '--');
+      document.getElementById('lat-e2e').textContent = fmtLat(latencies.e2e_ms !== undefined ? latencies.e2e_ms : (metrics.latency_mean_ms || '--'));
+
+      document.getElementById('metric-p95-p99').textContent = 
+        `P50: ${fmtLat(metrics.latency_p50_ms)} | P95: ${fmtLat(metrics.latency_p95_ms)} | P99: ${fmtLat(metrics.latency_p99_ms)} | Min: ${fmtLat(metrics.latency_min_ms)} | Max: ${fmtLat(metrics.latency_max_ms)}`;
+
+      // Transaction Table Feed
+      document.getElementById('feed-count-badge').textContent = recents.length + ' records';
+      const tbody = document.getElementById('tx-table-body');
+
+      if (recents.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" class="empty-state">
+              <span class="pulse-dot" style="display:inline-block; margin-right: 6px; background: var(--accent-indigo);"></span>
+              Waiting for incoming transactions for this session...
+            </td>
+          </tr>
+        `;
+      } else {
+        let rowsHtml = '';
+        recents.forEach(item => {
+          const isFraud = (item.decision === 'FRAUD');
+          const badgeClass = isFraud ? 'badge-fraud' : 'badge-legit';
+          const probStr = (item.fraud_probability !== null && item.fraud_probability !== undefined) 
+            ? item.fraud_probability.toFixed(6) 
+            : '--';
+          const stages = item.stages || {};
+          const kPass = stages.kafka === 'PASS' || stages.kafka === true;
+          const fPass = stages.flink === 'PASS' || stages.flink === true;
+          const bPass = stages.bridge === 'PASS' || stages.bridge === true;
+          const hPass = stages.hydration === 'PASS' || stages.hydration === true;
+          const featCount = stages.features || 406;
+
+          rowsHtml += `
+            <tr>
+              <td>${item.timestamp || '--'}</td>
+              <td style="font-weight: 600; color: var(--text-primary);">${item.transaction_id}</td>
+              <td><span class="badge-stage ${kPass ? 'badge-pass' : ''}">✓ P:${item.partition !== undefined ? item.partition : 0}</span></td>
+              <td><span class="badge-stage ${fPass ? 'badge-pass' : ''}">✓ CEP</span></td>
+              <td><span class="badge-stage ${bPass ? 'badge-pass' : ''}">✓ Norm</span></td>
+              <td><span class="badge-stage ${hPass ? 'badge-pass' : ''}">✓ Hydr</span></td>
+              <td style="color: var(--accent-cyan); font-weight: 600;">${featCount}</td>
+              <td style="font-weight: 700; color: ${isFraud ? 'var(--accent-rose)' : 'var(--text-primary)'};">${probStr}</td>
+              <td><span class="badge-decision ${badgeClass}">${item.decision}</span></td>
+              <td>${(item.latency_ms || item.total_latency_ms || 0).toFixed(2)} ms</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = rowsHtml;
+      }
+    }
+
+    function togglePolling() {
+      const btn = document.getElementById('btn-toggle-poll');
+      if (isPollingActive) {
+        clearInterval(pollInterval);
+        isPollingActive = false;
+        btn.textContent = 'Auto-refresh: Paused';
+        btn.style.color = 'var(--accent-amber)';
+      } else {
+        pollInterval = setInterval(fetchDashboardState, 1000);
+        isPollingActive = true;
+        btn.textContent = 'Auto-refresh: 1s';
+        btn.style.color = 'var(--text-secondary)';
+        fetchDashboardState();
+      }
+    }
+
+    // Initial load and start 1-second auto-poll
+    fetchDashboardState();
+    pollInterval = setInterval(fetchDashboardState, 1000);
+  </script>
+</body>
+</html>

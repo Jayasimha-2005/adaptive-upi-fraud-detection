@@ -2,9 +2,19 @@
 # Adaptive Financial Fraud Detection — .gitignore
 # =============================================================================
 
-# ── Raw datasets (NEVER commit — too large, Kaggle ToS) ──────────────────────
+# ── Raw datasets & Data folders (NEVER commit — too large, Kaggle ToS) ───────
 Datasets/
 datasets/
+data/
+serving/data/
+**/data/
+test_transaction.csv
+test_transactions.csv
+test_identity.csv
+train_transaction.csv
+train_identity.csv
+*.csv.zip
+*.tar.gz
 
 # ── Model artifacts — TRACKED (all under 100MB GitHub limit) ─────────────────
 # experiments/E1_lightgbm/model.txt          → 6.64 MB  — teammates need this

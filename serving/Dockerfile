@@ -28,6 +28,9 @@ COPY preprocessing/ ./preprocessing/
 COPY src/ ./src/
 COPY inference/ ./inference/
 COPY monitoring/ ./monitoring/
+COPY dashboard/ ./dashboard/
+COPY data/ ./data/
+COPY streaming/ ./streaming/
 
 # Enable both top-level and serving.* package imports inside container
 RUN ln -s /app /app/serving

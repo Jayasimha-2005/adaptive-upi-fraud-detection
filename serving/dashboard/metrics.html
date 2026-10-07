@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Metrics — Financial Fraud Model Serving API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #fafafa;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --border-color: #e5e7eb;
+      --border-hover: #cbd5e1;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      
+      --swagger-blue: #4990e2;
+      --swagger-blue-bg: #ebf3fb;
+      --swagger-green: #49cc90;
+      --swagger-green-bg: #eafaf1;
+      --swagger-amber: #fca130;
+      --swagger-amber-bg: #fef5ea;
+      --swagger-red: #f93e3e;
+      --swagger-red-bg: #feebeb;
+      --swagger-purple: #9061f9;
+      --swagger-purple-bg: #f6f5ff;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 24px 20px 48px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Top Navigation / Breadcrumbs */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      font-size: 0.88rem;
+    }
+
+    .nav-links a {
+      color: var(--swagger-blue);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .poll-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: var(--swagger-green-bg);
+      color: #0d6832;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid rgba(73, 204, 144, 0.4);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--swagger-green);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(73, 204, 144, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(73, 204, 144, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(73, 204, 144, 0); }
+    }
+
+    /* Swagger-style Header */
+    .docs-header {
+      margin-bottom: 28px;
+    }
+
+    .docs-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .docs-title {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .tag-version {
+      background: #334155;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-oas {
+      background: #49cc90;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .docs-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .docs-endpoint-url {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--swagger-blue);
+    }
+
+    /* Section Category Header (like "Monitoring" in Swagger) */
+    .section-category {
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+
+    .category-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Swagger Block Item */
+    .swagger-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      transition: border-color 0.15s ease;
+    }
+
+    .swagger-block:hover {
+      border-color: var(--border-hover);
+    }
+
+    .swagger-block-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: #fafafa;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .swagger-block-header.open {
+      background: #ffffff;
+    }
+
+    .block-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .http-tag {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-get {
+      background: var(--swagger-blue);
+      color: #ffffff;
+    }
+
+    .tag-status {
+      background: var(--swagger-green);
+      color: #ffffff;
+    }
+
+    .tag-amber {
+      background: var(--swagger-amber);
+      color: #ffffff;
+    }
+
+    .endpoint-path {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #1e293b;
+    }
+
+    .endpoint-summary {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .block-body {
+      padding: 18px 20px;
+    }
+
+    /* Key-Value Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .val-green { color: #16a34a !important; }
+    .val-blue { color: #2563eb !important; }
+    .val-amber { color: #d97706 !important; }
+    .val-red { color: #dc2626 !important; }
+    .val-purple { color: #7c3aed !important; }
+
+    /* Latency Percentile Bar Table */
+    .lat-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 10px;
+    }
+
+    .lat-table th, .lat-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .lat-table th {
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .lat-table td {
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    /* JSON Box */
+    .json-wrapper {
+      background: #0f172a;
+      border-radius: 6px;
+      padding: 14px;
+      position: relative;
+      margin-top: 12px;
+    }
+
+    .json-code {
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .btn-copy {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: #334155;
+      color: #f1f5f9;
+      border: 1px solid #475569;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-copy:hover {
+      background: #475569;
+    }
+
+    footer {
+      margin-top: 36px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    footer a {
+      color: var(--swagger-blue);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <div class="nav-links">
+        <a href="/docs">&larr; Swagger UI (/docs)</a>
+        <a href="/dashboard">Live Observability Dashboard (/dashboard)</a>
+        <a href="/health">Health Status (/health)</a>
+        <a href="/metrics?format=json" target="_blank">Raw JSON View</a>
+      </div>
+      <div id="btn-poll-toggle" class="poll-badge" onclick="togglePolling()">
+        <span class="pulse-dot"></span>
+        <span id="poll-label">Live Auto-Refresh: 1s</span>
+      </div>
+    </div>
+
+    <!-- Swagger-style Page Header -->
+    <div class="docs-header">
+      <div class="docs-title-row">
+        <h1 class="docs-title">Financial Fraud Model Serving API</h1>
+        <span class="tag-version">1.0.0</span>
+        <span class="tag-oas">OAS 3.1</span>
+        <span class="tag-version" style="background:#10b981;">E1 FROZEN</span>
+      </div>
+      <div class="docs-subtitle">
+        Real-Time Performance &amp; Operational Metrics for E1 LightGBM ML Serving Engine
+      </div>
+      <div class="docs-endpoint-url">
+        GET <b>/metrics</b> &bull; Host: <b>localhost:8000</b> &bull; Decision Threshold: <b>0.616521</b>
+      </div>
+    </div>
+
+    <!-- Category: Executive Metrics Summary -->
+    <div class="section-category">
+      <div class="category-title">
+        <span>📊 Operational Telemetry</span>
+      </div>
+      <div class="category-desc">Aggregated in-memory serving performance and decision distribution</div>
+    </div>
+
+    <!-- Summary Metrics Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-title">Total Requests</div>
+        <div id="m-total-requests" class="metric-value val-blue">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Successful (2xx)</div>
+        <div id="m-success-requests" class="metric-value val-green">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Client Errors (4xx)</div>
+        <div id="m-client-errors" class="metric-value">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Server Errors (5xx)</div>
+        <div id="m-server-errors" class="metric-value">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Fraud Decisions</div>
+        <div id="m-fraud-count" class="metric-value val-red">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Legitimate Decisions</div>
+        <div id="m-legit-count" class="metric-value val-green">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Mean Latency</div>
+        <div id="m-mean-lat" class="metric-value val-purple">-- ms</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">P50 Latency</div>
+        <div id="m-p50-lat" class="metric-value val-purple">-- ms</div>
+      </div>
+    </div>
+
+    <!-- Category: Detailed Metric Breakdown Accordions -->
+    <div class="section-category">
+      <div class="category-title">
+        <span>⚡ Latency Percentiles &amp; In-Memory Distribution</span>
+      </div>
+    </div>
+
+    <!-- Swagger Accordion 1: Latency Percentiles -->
+    <div class="swagger-block">
+      <div class="swagger-block-header open" onclick="toggleBlock('block-lat')">
+        <div class="block-header-left">
+          <span class="http-tag tag-get">GET</span>
+          <span class="endpoint-path">/metrics/latency</span>
+          <span class="endpoint-summary">Inference Latency Percentile Distribution (C-Engine + Fast Vectorizer)</span>
+        </div>
+        <span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem;">▼</span>
+      </div>
+      <div id="block-lat" class="block-body">
+        <table class="lat-table">
+          <thead>
+            <tr>
+              <th>Percentile / Metric</th>
+              <th>Measured Value</th>
+              <th>Unit</th>
+              <th>Evaluation Context</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>P50 (Median)</b></td>
+              <td id="lat-p50" class="val-blue font-bold">--</td>
+              <td>ms</td>
+              <td>50% of requests served below this latency</td>
+            </tr>
+            <tr>
+              <td><b>P95 Latency</b></td>
+              <td id="lat-p95" class="val-purple font-bold">--</td>
+              <td>ms</td>
+              <td>95th percentile serving threshold</td>
+            </tr>
+            <tr>
+              <td><b>P99 Latency</b></td>
+              <td id="lat-p99" class="val-amber font-bold">--</td>
+              <td>ms</td>
+              <td>Tail latency across heavy request bursts</td>
+            </tr>
+            <tr>
+              <td><b>Minimum Latency</b></td>
+              <td id="lat-min">--</td>
+              <td>ms</td>
+              <td>Warm cache single-vector fast path</td>
+            </tr>
+            <tr>
+              <td><b>Maximum Latency</b></td>
+              <td id="lat-max">--</td>
+              <td>ms</td>
+              <td>Peak duration recorded in session</td>
+            </tr>
+            <tr>
+              <td><b>Sample Count</b></td>
+              <td id="lat-samples">0</td>
+              <td>records</td>
+              <td>Total timed transactions in ring buffer</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Swagger Accordion 2: Session & System Information -->
+    <div class="swagger-block">
+      <div class="swagger-block-header open" onclick="toggleBlock('block-sess')">
+        <div class="block-header-left">
+          <span class="http-tag tag-status">SESSION</span>
+          <span class="endpoint-path">/metrics/session</span>
+          <span class="endpoint-summary">Active Test Session ID &amp; Temporal Tracking</span>
+        </div>
+        <span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem;">▼</span>
+      </div>
+      <div id="block-sess" class="block-body">
+        <div style="font-size: 0.88rem; display: grid; grid-template-columns: 180px 1fr; gap: 8px; font-family: var(--font-mono);">
+          <div style="color: var(--text-muted);">Session ID:</div>
+          <div id="sess-id" style="font-weight: 600; color: #1e293b;">--</div>
+          <div style="color: var(--text-muted);">Session Start:</div>
+          <div id="sess-start">--</div>
+          <div style="color: var(--text-muted);">Decision Model:</div>
+          <div>E1 LightGBM (406 Canonical Features)</div>
+          <div style="color: var(--text-muted);">Decision Threshold:</div>
+          <div style="color: #dc2626; font-weight: 600;">0.616521</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Swagger Accordion 3: Raw JSON Response Payload -->
+    <div class="swagger-block">
+      <div class="swagger-block-header open" onclick="toggleBlock('block-json')">
+        <div class="block-header-left">
+          <span class="http-tag tag-amber">PAYLOAD</span>
+          <span class="endpoint-path">/metrics.json</span>
+          <span class="endpoint-summary">Live JSON Telemetry Output (application/json)</span>
+        </div>
+        <span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem;">▼</span>
+      </div>
+      <div id="block-json" class="block-body">
+        <div class="json-wrapper">
+          <button class="btn-copy" onclick="copyJson()">Copy JSON</button>
+          <pre id="json-display" class="json-code">Loading metrics...</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>Adaptive Financial Fraud Detection &bull; Member 3 FastAPI Serving Layer</div>
+      <div>
+        <a href="/docs">Docs</a> &bull;
+        <a href="/dashboard">Dashboard</a> &bull;
+        <a href="/health">Health</a> &bull;
+        <a href="/openapi.json">OpenAPI Spec</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    let pollInterval = null;
+    let isPolling = true;
+    let currentMetricsJson = {};
+
+    async function fetchMetrics() {
+      try {
+        const res = await fetch('/metrics?format=json', {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        currentMetricsJson = data;
+        renderMetrics(data);
+      } catch (err) {
+        console.warn('Metrics polling error:', err);
+      }
+    }
+
+    function renderMetrics(d) {
+      // Summary cards
+      document.getElementById('m-total-requests').textContent = (d.total_requests || 0).toLocaleString();
+      document.getElementById('m-success-requests').textContent = (d.successful_requests || 0).toLocaleString();
+      document.getElementById('m-client-errors').textContent = (d.http_4xx_count || 0).toLocaleString();
+      document.getElementById('m-server-errors').textContent = (d.http_5xx_count || 0).toLocaleString();
+      document.getElementById('m-fraud-count').textContent = (d.fraud_count || 0).toLocaleString();
+      document.getElementById('m-legit-count').textContent = (d.legit_count || 0).toLocaleString();
+
+      const fmt = (v) => (v !== null && v !== undefined) ? v.toFixed(2) + ' ms' : '-- ms';
+      document.getElementById('m-mean-lat').textContent = fmt(d.latency_mean_ms);
+      document.getElementById('m-p50-lat').textContent = fmt(d.latency_p50_ms);
+
+      // Latency table
+      document.getElementById('lat-p50').textContent = (d.latency_p50_ms !== undefined && d.latency_p50_ms !== null) ? d.latency_p50_ms.toFixed(2) : '--';
+      document.getElementById('lat-p95').textContent = (d.latency_p95_ms !== undefined && d.latency_p95_ms !== null) ? d.latency_p95_ms.toFixed(2) : '--';
+      document.getElementById('lat-p99').textContent = (d.latency_p99_ms !== undefined && d.latency_p99_ms !== null) ? d.latency_p99_ms.toFixed(2) : '--';
+      document.getElementById('lat-min').textContent = (d.latency_min_ms !== undefined && d.latency_min_ms !== null) ? d.latency_min_ms.toFixed(2) : '--';
+      document.getElementById('lat-max').textContent = (d.latency_max_ms !== undefined && d.latency_max_ms !== null) ? d.latency_max_ms.toFixed(2) : '--';
+      document.getElementById('lat-samples').textContent = (d.latency_sample_count || d.total_requests || 0).toLocaleString();
+
+      // Session
+      document.getElementById('sess-id').textContent = d.session_id || 'Active Session';
+      document.getElementById('sess-start').textContent = d.session_start_time || '--';
+
+      // JSON Code block
+      document.getElementById('json-display').textContent = JSON.stringify(d, null, 2);
+    }
+
+    function toggleBlock(id) {
+      const el = document.getElementById(id);
+      if (el.style.display === 'none') {
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    function togglePolling() {
+      const label = document.getElementById('poll-label');
+      const badge = document.getElementById('btn-poll-toggle');
+      if (isPolling) {
+        clearInterval(pollInterval);
+        isPolling = false;
+        label.textContent = 'Auto-Refresh: Paused';
+        badge.style.background = '#fef3c7';
+        badge.style.color = '#92400e';
+      } else {
+        pollInterval = setInterval(fetchMetrics, 1000);
+        isPolling = true;
+        label.textContent = 'Live Auto-Refresh: 1s';
+        badge.style.background = 'var(--swagger-green-bg)';
+        badge.style.color = '#0d6832';
+        fetchMetrics();
+      }
+    }
+
+    function copyJson() {
+      navigator.clipboard.writeText(JSON.stringify(currentMetricsJson, null, 2));
+      alert('Metrics JSON copied to clipboard!');
+    }
+
+    // Initial run
+    fetchMetrics();
+    pollInterval = setInterval(fetchMetrics, 1000);
+  </script>
+</body>
+</html>

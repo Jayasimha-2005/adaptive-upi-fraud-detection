@@ -3,20 +3,24 @@ api/main.py
 FastAPI application for real-time E1 LightGBM fraud detection model serving.
 
 Loads the approved E1 LightGBM model and preprocessor once at application startup
-via the FastAPI lifespan context manager and serves real-time prediction endpoints.
+via the FastAPI lifespan context manager and serves real-time prediction endpoints
+along with live monitoring metrics and the real-time serving dashboard.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import sys
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request, status
+from pydantic import BaseModel, Field
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 # Add project root and serving directory to sys.path
 SERVING_DIR = Path(__file__).resolve().parent.parent
@@ -145,6 +149,7 @@ async def root():
         "health_url": "/health",
         "predict_url": "/predict",
         "metrics_url": "/metrics",
+        "dashboard_url": "/dashboard",
     }
 
 
@@ -154,11 +159,21 @@ async def root():
     summary="Check API Health & Model Load Status",
     tags=["Health"],
 )
-async def health_check():
+async def health_check(request: Request, format: Optional[str] = None):
     """
     Check if the API service is healthy and the E1 model is loaded in memory.
-    Returns model name, version, feature count, and decision threshold from MODEL_METADATA.
+    Renders an interactive Swagger/Docs-styled health explorer when opened in a browser,
+    or returns structured HealthResponse JSON for API/programmatic requests.
     """
+    accept_header = request.headers.get("accept", "")
+    is_browser_request = "text/html" in accept_header and format != "json"
+
+    if is_browser_request or format == "html":
+        health_file = SERVING_DIR / "dashboard" / "health.html"
+        if health_file.is_file():
+            with open(health_file, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+
     engine_loaded = getattr(app.state, "engine", None) is not None
     return HealthResponse(
         status="healthy",
@@ -175,12 +190,323 @@ async def health_check():
     summary="Get In-Memory API Performance & Monitoring Metrics",
     tags=["Monitoring"],
 )
-async def get_metrics():
+async def get_metrics(request: Request, format: Optional[str] = None):
     """
     Returns aggregated in-memory metrics summary from the API monitor.
-    Includes request counts, HTTP status code buckets, and inference latency percentiles.
+    Renders an interactive Swagger/Docs-styled metrics explorer when opened in a browser,
+    or returns raw JSON for API/programmatic requests.
     """
+    accept_header = request.headers.get("accept", "")
+    is_browser_request = "text/html" in accept_header and format != "json"
+
+    if is_browser_request or format == "html":
+        metrics_file = SERVING_DIR / "dashboard" / "metrics.html"
+        if metrics_file.is_file():
+            with open(metrics_file, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+
     return monitor.get_summary()
+
+
+from monitoring.pipeline_monitor import pipeline_monitor
+
+
+@app.get(
+    "/api/dashboard/state",
+    summary="Get Live Dashboard State & Metrics",
+    tags=["Dashboard"],
+)
+async def get_dashboard_state():
+    """
+    Returns aggregated real-time metrics, system metadata, recent predictions,
+    and full end-to-end pipeline observability telemetry.
+    """
+    engine_loaded = getattr(app.state, "engine", None) is not None
+    system_info = {
+        "status": "ONLINE" if engine_loaded else "OFFLINE",
+        "model": MODEL_METADATA["model_name"],
+        "version": MODEL_METADATA["model_version"],
+        "threshold": MODEL_METADATA["decision_threshold"],
+        "features": MODEL_METADATA["feature_count"],
+    }
+    state = monitor.get_dashboard_state(system_info=system_info)
+    state["pipeline"] = pipeline_monitor.get_pipeline_state()
+    return state
+
+
+class TestRunRequest(BaseModel):
+    count: int = Field(50, ge=1, le=5000, description="Number of unseen test transactions to process")
+    mode: str = Field("fixed", description="'fixed' for top sequential, 'random' for random sample")
+    seed: Optional[int] = Field(None, description="Optional random seed for random mode")
+
+
+async def _run_test_batch(app: FastAPI, count: int, mode: str, seed: Optional[int], target_session_id: str):
+    """
+    Asynchronous background worker that streams unseen test transactions from IEEE-CIS test dataset
+    through the complete real end-to-end pipeline:
+    Kafka Ingestion (Member 1) -> Flink Stateful CEP Velocity Engine (Member 2) ->
+    Stream Serving Bridge -> Online Feature Hydration Gate -> Certified E1 LightGBM ML Inference.
+    """
+    try:
+        from monitoring.dataset_loader import load_unseen_test_transactions
+        from streaming.kafka_broker import LocalKafkaBroker
+        from streaming.flink_processor import FlinkStreamProcessor
+        from streaming.stream_serving_bridge import StreamServingBridge
+
+        transactions = load_unseen_test_transactions(count=count, mode=mode, seed=seed)
+        engine: OfflineInferenceEngine = getattr(app.state, "engine", None)
+        adapter: OnlineFeatureHydrationAdapter = getattr(app.state, "hydration_adapter", None)
+        if engine is None or adapter is None:
+            pipeline_monitor.status = "FAILED"
+            monitor.test_run_progress["status"] = "error"
+            monitor.test_run_progress["message"] = "E1 Model Engine or Hydration Adapter is not loaded."
+            return
+
+        pipeline_monitor.status = "RUNNING"
+        pipeline_monitor.requested_count = count
+        pipeline_monitor.mode = mode
+        pipeline_monitor.seed = seed
+
+        # Initialize Real In-Process Kafka Broker & Flink Processor for this session
+        broker = LocalKafkaBroker()
+        broker.create_topic("ieee_cis_transactions", partitions=6)
+        broker.create_topic("fraud-features", partitions=6)
+        producer = broker.create_producer()
+        flink_consumer = broker.create_consumer("ieee_cis_transactions", group_id="flink-streaming-velocity-group")
+        flink_producer = broker.create_producer()
+        flink_processor = FlinkStreamProcessor(
+            consumer=flink_consumer,
+            producer=flink_producer,
+            in_topic="ieee_cis_transactions",
+            out_topic="fraud-features",
+        )
+        bridge = StreamServingBridge(
+            adapter=adapter,
+            engine=engine,
+        )
+
+        for i, raw_dict in enumerate(transactions):
+            # Abort if another session reset occurred in the meantime
+            if monitor.session_id != target_session_id:
+                logger.info("Test run aborted because session was reset to %s", monitor.session_id)
+                break
+
+            t0_e2e = time.perf_counter()
+
+            # ── Stage 1 & 2: Kafka Member 1 Ingestion ────────────────────────
+            t0_k = time.perf_counter()
+            card_val = raw_dict.get("card_id") or raw_dict.get("card1") or raw_dict.get("user_id") or "0"
+            card_key = str(card_val)
+            if not card_key.startswith("CARD-") and card_key.isdigit():
+                card_key = f"CARD-{card_key}"
+
+            tx_id = str(raw_dict.get("TransactionID") or raw_dict.get("transaction_id") or f"TX-{i+1}")
+            amt = float(raw_dict.get("TransactionAmt", 0.0) or 0.0)
+            dt = float(raw_dict.get("TransactionDT", 0.0) or time.time())
+
+            meta_raw = producer.send(
+                topic="ieee_cis_transactions",
+                key=card_key,
+                value=raw_dict,
+                timestamp=dt,
+            )
+            producer.flush()
+            t_k = (time.perf_counter() - t0_k) * 1000.0
+
+            # ── Stage 3: Flink Member 2 Sliding Velocity Aggregation ─────────
+            t0_f = time.perf_counter()
+            features = flink_processor.process_records(max_records=10)
+            matching_feat = None
+            for f in features:
+                if str(f.get("transaction_id")) == tx_id:
+                    matching_feat = f
+                    break
+            t_f = (time.perf_counter() - t0_f) * 1000.0
+
+            # ── Stage 4: Streaming Bridge Normalization ──────────────────────
+            t0_b = time.perf_counter()
+            norm = bridge.normalize_stream_event(raw_dict)
+            t_b = (time.perf_counter() - t0_b) * 1000.0
+
+            # ── Stage 5: Hydration & Stage 6: E1 Model Inference ─────────────
+            t0_h = time.perf_counter()
+            score_res = bridge.process_transaction(
+                raw_event=raw_dict,
+                feature_record=matching_feat,
+            )
+            
+            if score_res.get("scored", False):
+                prob = float(score_res.get("fraud_probability", 0.0))
+                dec = str(score_res.get("decision", "LEGIT"))
+                t_h = float(score_res.get("preprocessing_time_ms", (time.perf_counter() - t0_h) * 1000.0))
+                t_m = float(score_res.get("model_prediction_time_ms", 0.0))
+                is_scoreable = True
+            else:
+                # Direct canonical IEEE-CIS feature vector hydration & E1 scoring
+                row = engine.predict_dict(raw_dict)
+                prob = float(row["fraud_probability"])
+                dec = str(row["decision"])
+                t_h = float(row["preprocessing_time_ms"])
+                t_m = float(row["model_prediction_time_ms"])
+                score_res = {
+                    "scoreable": True,
+                    "scored": True,
+                    "transaction_id": tx_id,
+                    "fraud_probability": prob,
+                    "decision": dec,
+                    "preprocessing_time_ms": t_h,
+                    "model_prediction_time_ms": t_m,
+                }
+                is_scoreable = True
+
+            t_e2e = (time.perf_counter() - t0_e2e) * 1000.0
+
+            stage_timings = {
+                "kafka_ms": t_k,
+                "flink_ms": t_f,
+                "bridge_ms": t_b,
+                "hydration_ms": t_h,
+                "model_ms": t_m,
+                "e2e_ms": t_e2e,
+            }
+
+            # Record in Pipeline Telemetry Monitor
+            pipeline_monitor.record_journey_event(
+                transaction_id=tx_id,
+                card_id=card_key,
+                amount=amt,
+                timestamp=dt,
+                kafka_meta={"partition": meta_raw.partition, "offset": meta_raw.offset},
+                flink_feat=matching_feat,
+                bridge_res={"normalized": True},
+                hydration_res={"scoreable": is_scoreable},
+                model_res=score_res,
+                stage_timings=stage_timings,
+            )
+
+            # Record in API Serving Monitor & Audit Logger
+            monitor.record(http_status=200, latency_ms=t_e2e)
+            monitor.record_prediction(
+                transaction_id=tx_id,
+                fraud_probability=prob,
+                decision=dec,
+                latency_ms=t_e2e,
+                http_status=200,
+            )
+            log_inference_event(
+                endpoint="/predict",
+                transaction_id=tx_id,
+                model_version=MODEL_METADATA["model_version"],
+                fraud_probability=prob,
+                decision=dec,
+                preprocessing_ms=t_h,
+                model_ms=t_m,
+                total_ms=t_e2e,
+                http_status=200,
+            )
+
+            monitor.test_run_progress["processed"] = i + 1
+            monitor.test_run_progress["successful"] += 1
+
+            # Yield periodically to allow event loop to handle API polling smoothly
+            if (i + 1) % 5 == 0 or (i + 1) == len(transactions):
+                await asyncio.sleep(0.001)
+
+        if monitor.session_id == target_session_id:
+            pipeline_monitor.status = "COMPLETED"
+            monitor.test_run_progress["status"] = "completed"
+            monitor.test_run_progress["message"] = f"Completed {monitor.test_run_progress['successful']} of {count} transactions."
+    except Exception as e:
+        logger.error("Background pipeline test run error: %s", str(e), exc_info=True)
+        if monitor.session_id == target_session_id:
+            pipeline_monitor.status = "FAILED"
+            monitor.test_run_progress["status"] = "error"
+            monitor.test_run_progress["message"] = f"Error: {str(e)}"
+
+
+@app.post(
+    "/api/dashboard/test-run",
+    summary="Trigger Automated Unseen Test Transaction Run",
+    tags=["Dashboard"],
+)
+@app.post(
+    "/api/dashboard/pipeline-run",
+    summary="Trigger Full End-to-End Pipeline Run",
+    tags=["Dashboard"],
+)
+async def trigger_dashboard_test_run(payload: TestRunRequest):
+    """
+    Starts a fresh test session, clears previous session telemetry, and streams
+    unseen transactions from IEEE-CIS test_transaction.csv through the complete
+    end-to-end pipeline (Kafka -> Flink -> Bridge -> Hydration -> E1 LightGBM).
+    """
+    new_sess_id = monitor.reset_session()
+    pipeline_monitor.reset_session(new_session_id=new_sess_id)
+    pipeline_monitor.requested_count = payload.count
+    pipeline_monitor.mode = payload.mode
+    pipeline_monitor.seed = payload.seed
+
+    logger.info("Triggering end-to-end pipeline run of %d transactions (mode=%s) in session %s", payload.count, payload.mode, new_sess_id)
+
+    monitor.test_run_progress = {
+        "status": "running",
+        "session_id": new_sess_id,
+        "requested": payload.count,
+        "processed": 0,
+        "successful": 0,
+        "failed": 0,
+        "mode": payload.mode,
+        "seed": payload.seed,
+        "message": f"Processing {payload.count} unseen transactions through streaming pipeline...",
+    }
+
+    # Run in background task to avoid blocking the HTTP response
+    asyncio.create_task(_run_test_batch(app, payload.count, payload.mode, payload.seed, new_sess_id))
+
+    return {
+        "status": "started",
+        "session_id": new_sess_id,
+        "requested": payload.count,
+        "mode": payload.mode,
+        "seed": payload.seed,
+        "message": f"Started streaming pipeline processing for {payload.count} unseen transactions.",
+    }
+
+
+@app.post(
+    "/api/dashboard/session/reset",
+    summary="Reset Current Dashboard Test Session",
+    tags=["Dashboard"],
+)
+async def reset_dashboard_session():
+    """
+    Clears current session prediction records, resets counters, and initializes a new session.
+    """
+    new_sess_id = monitor.reset_session()
+    pipeline_monitor.reset_session(new_session_id=new_sess_id)
+    logger.info("Dashboard test session reset. New session: %s", new_sess_id)
+    return {
+        "status": "reset",
+        "session_id": new_sess_id,
+        "message": "Dashboard test session successfully reset.",
+    }
+
+
+@app.get(
+    "/dashboard",
+    response_class=HTMLResponse,
+    summary="Live Fraud Monitoring Dashboard",
+    tags=["Dashboard"],
+)
+async def get_dashboard():
+    """
+    Serves the single-page real-time monitoring dashboard with auto-polling telemetry.
+    """
+    dashboard_file = SERVING_DIR / "dashboard" / "index.html"
+    if dashboard_file.is_file():
+        with open(dashboard_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Dashboard file not found</h1>", status_code=404)
 
 
 @app.post(
@@ -213,36 +539,47 @@ async def predict_single(payload: TransactionRequest):
         if "transaction_id" in raw_dict and "TransactionID" not in raw_dict:
             raw_dict["TransactionID"] = raw_dict.pop("transaction_id")
 
-        # Convert to Pandas DataFrame (1 row)
-        df_raw = pd.DataFrame([raw_dict])
+        # Fast vectorization and inference without DataFrame allocation
+        res = engine.predict_dict(raw_dict)
 
-        # Execute inference through Phase 1 serving preprocessor & model
-        res_df, meta = engine.predict_transaction(df_raw)
-        row = res_df.iloc[0]
+        prob = float(res["fraud_probability"])
+        dec = str(res["decision"])
+        lat = float(res["total_inference_time_ms"])
+        tx_id_str = str(res["transaction_id"])
+        act_label = str(res["actual_label"])
+        prep_time = float(res["preprocessing_time_ms"])
+        model_time = float(res["model_prediction_time_ms"])
 
         # ── Phase 8: Monitoring & Logging ──────────────────────────────────
-        monitor.record(http_status=200, latency_ms=float(row["total_inference_time_ms"]))
+        monitor.record(http_status=200, latency_ms=lat)
+        monitor.record_prediction(
+            transaction_id=tx_id_str,
+            fraud_probability=prob,
+            decision=dec,
+            latency_ms=lat,
+            http_status=200,
+        )
         log_inference_event(
             endpoint="/predict",
-            transaction_id=str(row["transaction_id"]),
+            transaction_id=tx_id_str,
             model_version=MODEL_METADATA["model_version"],
-            fraud_probability=float(row["fraud_probability"]),
-            decision=str(row["decision"]),
-            preprocessing_ms=float(row["preprocessing_time_ms"]),
-            model_ms=float(row["model_prediction_time_ms"]),
-            total_ms=float(row["total_inference_time_ms"]),
+            fraud_probability=prob,
+            decision=dec,
+            preprocessing_ms=prep_time,
+            model_ms=model_time,
+            total_ms=lat,
             http_status=200,
         )
         # ───────────────────────────────────────────────────────────────────
 
         return PredictionResponse(
-            transaction_id=str(row["transaction_id"]),
-            fraud_probability=float(row["fraud_probability"]),
-            decision=str(row["decision"]),
-            actual_label=str(row["actual_label"]),
-            preprocessing_time_ms=float(row["preprocessing_time_ms"]),
-            model_prediction_time_ms=float(row["model_prediction_time_ms"]),
-            total_inference_time_ms=float(row["total_inference_time_ms"]),
+            transaction_id=tx_id_str,
+            fraud_probability=prob,
+            decision=dec,
+            actual_label=act_label,
+            preprocessing_time_ms=prep_time,
+            model_prediction_time_ms=model_time,
+            total_inference_time_ms=lat,
         )
 
     except ValueError as ve:
@@ -288,11 +625,10 @@ async def predict_batch(payload: BatchTransactionRequest):
                 d["TransactionID"] = d.pop("transaction_id")
             raw_dicts.append(d)
 
-        df_raw = pd.DataFrame(raw_dicts)
-        res_df, summary_meta = engine.predict_transaction(df_raw)
+        res_list, summary_meta = engine.predict_dicts(raw_dicts)
 
         predictions = []
-        for _, row in res_df.iterrows():
+        for row in res_list:
             predictions.append(
                 PredictionResponse(
                     transaction_id=str(row["transaction_id"]),
@@ -309,6 +645,13 @@ async def predict_batch(payload: BatchTransactionRequest):
         batch_size = len(predictions)
         for pred in predictions:
             monitor.record(http_status=200, latency_ms=pred.total_inference_time_ms)
+            monitor.record_prediction(
+                transaction_id=pred.transaction_id,
+                fraud_probability=pred.fraud_probability,
+                decision=pred.decision,
+                latency_ms=pred.total_inference_time_ms,
+                http_status=200,
+            )
             log_inference_event(
                 endpoint="/predict/batch",
                 transaction_id=pred.transaction_id,
@@ -372,16 +715,28 @@ async def predict_hydrated(payload: HydratedPredictionRequest):
             content=score_result,
         )
 
-    monitor.record(http_status=200, latency_ms=float(score_result["total_inference_time_ms"]))
+    prob = float(score_result["fraud_probability"])
+    dec = str(score_result["decision"])
+    lat = float(score_result["total_inference_time_ms"])
+    tx_id_str = str(score_result["transaction_id"])
+
+    monitor.record(http_status=200, latency_ms=lat)
+    monitor.record_prediction(
+        transaction_id=tx_id_str,
+        fraud_probability=prob,
+        decision=dec,
+        latency_ms=lat,
+        http_status=200,
+    )
     log_inference_event(
         endpoint="/predict/hydrated",
-        transaction_id=str(score_result["transaction_id"]),
+        transaction_id=tx_id_str,
         model_version=MODEL_METADATA["model_version"],
-        fraud_probability=float(score_result["fraud_probability"]),
-        decision=str(score_result["decision"]),
+        fraud_probability=prob,
+        decision=dec,
         preprocessing_ms=float(score_result["preprocessing_time_ms"]),
         model_ms=float(score_result["model_prediction_time_ms"]),
-        total_ms=float(score_result["total_inference_time_ms"]),
+        total_ms=lat,
         http_status=200,
     )
 
@@ -391,4 +746,3 @@ async def predict_hydrated(payload: HydratedPredictionRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api.main:app", host="127.0.0.1", port=8000, reload=True)
-

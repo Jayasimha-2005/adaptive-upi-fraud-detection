@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -70,7 +71,7 @@ class ServingPreprocessor:
             raise FileNotFoundError(f"Feature names file not found: {self.feature_names_path}")
         with open(self.feature_names_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            self.expected_feature_names: list[str] = data["feature_names"]
+            self.expected_feature_names: List[str] = list(data["feature_names"])
 
         if len(self.expected_feature_names) != self.EXPECTED_FEATURE_COUNT:
             raise ValueError(
@@ -96,88 +97,166 @@ class ServingPreprocessor:
                 "Preprocessor feature names or order do not match feature_names.json!"
             )
 
+        # 4. Pre-compile fast feature schema for sub-millisecond serving
+        self._compiled_schema: List[Tuple[str, str, Optional[Dict[str, float]], float]] = []
+        cat_maps: Dict[str, Dict[str, float]] = {}
+        unseen_codes: Dict[str, float] = {}
+
+        cat_encoders = getattr(self.preprocessor, "_cat_encoders", {})
+        for c, le in cat_encoders.items():
+            mapping = {str(cls): float(idx) for idx, cls in enumerate(le.classes_)}
+            cat_maps[c] = mapping
+            unseen_codes[c] = float(mapping.get("UNSEEN", mapping.get("MISSING", 0.0)))
+
+        num_medians: Dict[str, float] = dict(getattr(self.preprocessor, "_num_medians", {}))
+
+        for f_name in self.expected_feature_names:
+            if f_name in cat_maps:
+                self._compiled_schema.append(("cat", f_name, cat_maps[f_name], unseen_codes[f_name]))
+            elif f_name == "hour_sin":
+                self._compiled_schema.append(("hour_sin", f_name, None, 0.0))
+            elif f_name == "hour_cos":
+                self._compiled_schema.append(("hour_cos", f_name, None, 0.0))
+            elif f_name == "day_index":
+                self._compiled_schema.append(("day_index", f_name, None, 0.0))
+            elif f_name.endswith("_missing"):
+                base_col = f_name[:-8]
+                self._compiled_schema.append(("missing", base_col, None, 1.0))
+            else:
+                self._compiled_schema.append(("num", f_name, None, float(num_medians.get(f_name, 0.0))))
+
         logger.info(
             "ServingPreprocessor initialized successfully. Loaded 406 features matching schema."
         )
 
-    def transform(self, df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, dict[str, Any]]:
+    def transform_dict(self, raw_dict: Dict[str, Any]) -> np.ndarray:
+        """
+        Fast-path: directly convert a single transaction dictionary into a canonical
+        (1, 406) float64 NumPy feature vector without DataFrame allocation overhead.
+        """
+        dt_val = raw_dict.get("TransactionDT")
+        if dt_val is not None:
+            try:
+                dt_f = float(dt_val)
+                hour = (dt_f % 86400) / 3600.0
+                h_sin = math.sin(2 * math.pi * hour / 24)
+                h_cos = math.cos(2 * math.pi * hour / 24)
+                d_idx = (dt_f - 86400.0) / 86400.0
+            except Exception:
+                h_sin = h_cos = d_idx = 0.0
+        else:
+            h_sin = h_cos = d_idx = 0.0
+
+        arr = np.empty((1, self.EXPECTED_FEATURE_COUNT), dtype=np.float64)
+        for idx, (f_type, col_name, cat_map, default_val) in enumerate(self._compiled_schema):
+            if f_type == "num":
+                v = raw_dict.get(col_name)
+                if v is None or v == "" or (isinstance(v, float) and np.isnan(v)):
+                    arr[0, idx] = default_val
+                else:
+                    try:
+                        arr[0, idx] = float(v)
+                    except Exception:
+                        arr[0, idx] = default_val
+            elif f_type == "cat":
+                v = raw_dict.get(col_name)
+                if v is None or v == "" or (isinstance(v, float) and np.isnan(v)):
+                    s = "MISSING"
+                else:
+                    s = str(v)
+                arr[0, idx] = cat_map.get(s, default_val) if cat_map is not None else default_val
+            elif f_type == "missing":
+                v = raw_dict.get(col_name)
+                if v is None or v == "" or (isinstance(v, float) and np.isnan(v)):
+                    arr[0, idx] = 1.0
+                else:
+                    arr[0, idx] = 0.0
+            elif f_type == "hour_sin":
+                arr[0, idx] = h_sin
+            elif f_type == "hour_cos":
+                arr[0, idx] = h_cos
+            elif f_type == "day_index":
+                arr[0, idx] = d_idx
+
+        return arr
+
+    def transform_dicts(self, raw_dicts: List[Dict[str, Any]]) -> np.ndarray:
+        """
+        Fast-path: directly convert a batch of N transaction dictionaries into a
+        (N, 406) float64 NumPy feature matrix in single contiguous memory.
+        """
+        n_rows = len(raw_dicts)
+        arr = np.empty((n_rows, self.EXPECTED_FEATURE_COUNT), dtype=np.float64)
+
+        for row_i, raw_dict in enumerate(raw_dicts):
+            dt_val = raw_dict.get("TransactionDT")
+            if dt_val is not None:
+                try:
+                    dt_f = float(dt_val)
+                    hour = (dt_f % 86400) / 3600.0
+                    h_sin = math.sin(2 * math.pi * hour / 24)
+                    h_cos = math.cos(2 * math.pi * hour / 24)
+                    d_idx = (dt_f - 86400.0) / 86400.0
+                except Exception:
+                    h_sin = h_cos = d_idx = 0.0
+            else:
+                h_sin = h_cos = d_idx = 0.0
+
+            for col_i, (f_type, col_name, cat_map, default_val) in enumerate(self._compiled_schema):
+                if f_type == "num":
+                    v = raw_dict.get(col_name)
+                    if v is None or v == "" or (isinstance(v, float) and np.isnan(v)):
+                        arr[row_i, col_i] = default_val
+                    else:
+                        try:
+                            arr[row_i, col_i] = float(v)
+                        except Exception:
+                            arr[row_i, col_i] = default_val
+                elif f_type == "cat":
+                    v = raw_dict.get(col_name)
+                    if v is None or v == "" or (isinstance(v, float) and np.isnan(v)):
+                        s = "MISSING"
+                    else:
+                        s = str(v)
+                    arr[row_i, col_i] = cat_map.get(s, default_val) if cat_map is not None else default_val
+                elif f_type == "missing":
+                    v = raw_dict.get(col_name)
+                    if v is None or v == "" or (isinstance(v, float) and np.isnan(v)):
+                        arr[row_i, col_i] = 1.0
+                    else:
+                        arr[row_i, col_i] = 0.0
+                elif f_type == "hour_sin":
+                    arr[row_i, col_i] = h_sin
+                elif f_type == "hour_cos":
+                    arr[row_i, col_i] = h_cos
+                elif f_type == "day_index":
+                    arr[row_i, col_i] = d_idx
+
+        return arr
+
+    def transform(self, df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]]:
         """
         Safely preprocess raw transactions for inference.
-
-        Parameters
-        ----------
-        df_raw : pd.DataFrame
-            Raw transaction dataframe (with or without 'isFraud' / 'TransactionID').
-
-        Returns
-        -------
-        X : pd.DataFrame
-            Processed feature matrix of shape (N, 406), ordered strictly per feature_names.json.
-        meta : dict
-            Metadata dictionary containing:
-            - 'transaction_ids': list of TransactionIDs (or RangeIndex if missing)
-            - 'actual_labels': list of actual isFraud labels (or None if missing)
-            - 'row_count': N
-            - 'feature_count': 406
+        Preserves backward compatibility for full DataFrame inputs.
         """
         df = df_raw.copy()
         n_rows = len(df)
 
-        # Extract TransactionID for metadata tracking if present
         if "TransactionID" in df.columns:
             tx_ids = df["TransactionID"].tolist()
         else:
             tx_ids = df.index.tolist()
 
-        # Extract actual label for offline validation metadata tracking if present
         actual_labels = None
         if "isFraud" in df.columns:
             actual_labels = df["isFraud"].astype(int).tolist()
         else:
-            # Handle serving edge case: inject dummy column for preprocessor.transform()
             df["isFraud"] = 0
 
-        # Ensure all expected raw columns exist in df (fill missing raw fields with np.nan)
-        # This guarantees full consistency when online serving JSON payloads omit missing fields.
-        all_expected_raw = set(self.preprocessor._num_medians.keys()) | set(self.preprocessor._cat_encoders.keys()) | {"TransactionDT"}
-        missing_raw = [c for c in all_expected_raw if c not in df.columns]
-        if missing_raw:
-            df = df.reindex(columns=list(df.columns) + missing_raw, fill_value=np.nan)
-
-        # Transform raw features using approved preprocessor
-        X_raw, _ = self.preprocessor.transform(df)
-
-        # Ensure all expected feature columns exist in X_raw (fill missing with NaN)
-        missing_feats = [c for c in self.expected_feature_names if c not in X_raw.columns]
-        if missing_feats:
-            X_raw = X_raw.reindex(columns=list(X_raw.columns) + missing_feats, fill_value=np.nan)
-
-        # Re-order and align columns strictly with approved feature_names.json
-        X = X_raw[self.expected_feature_names].copy()
-
-        # Ensure all columns in X have numeric dtypes for LightGBM inference
-        for col in self.expected_feature_names:
-            if X[col].dtype == object:
-                X[col] = pd.to_numeric(X[col], errors="coerce")
-
-        # ── Feature Validation Checks ──────────────────────────────────────────
-        # Check 1: Feature count
-        if X.shape[1] != self.EXPECTED_FEATURE_COUNT:
-            raise ValueError(
-                f"Feature validation failed: Processed shape is {X.shape}, expected {self.EXPECTED_FEATURE_COUNT} columns"
-            )
-
-        # Check 2: Feature names & ordering match
-        if list(X.columns) != self.expected_feature_names:
-            raise ValueError("Feature validation failed: Feature column order mismatch")
-
-        # Check 3: Zero target leakage
-        if "isFraud" in X.columns:
-            raise ValueError("Leakage detection: 'isFraud' target column detected in model feature matrix!")
-
-        # Check 4: Zero identifier leakage
-        if "TransactionID" in X.columns:
-            raise ValueError("Leakage detection: 'TransactionID' detected in model feature matrix!")
+        # Fast vectorization across dataframe records
+        dicts = df.to_dict(orient="records")
+        X_mat = self.transform_dicts(dicts)
+        X = pd.DataFrame(X_mat, columns=self.expected_feature_names, index=df.index)
 
         meta = {
             "transaction_ids": tx_ids,
