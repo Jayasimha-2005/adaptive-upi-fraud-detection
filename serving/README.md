@@ -29,7 +29,7 @@ This repository contains the **ML Serving & Online/Offline Inference Infrastruct
 > 2. **Run live FastAPI server**: `cd serving && uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload`
 > 3. **Verify endpoints**: Check `http://localhost:8000/docs`, `/health`, `/predict`, and `/metrics`.
 > 4. **Run API & Monitoring tests**: `pytest serving/tests/test_api.py serving/tests/test_phase8_monitoring.py -v`
-> 5. **Build & run Docker image**: `docker build -t adaptive-fraud-serving:v1 -f serving/Dockerfile .` and `docker run -d -p 8000:8000 --name fraud-serving-api adaptive-fraud-serving:v1`
+> 5. **Build & run Docker image**: `docker build -t adaptive-fraud-serving:v1 -f serving/Dockerfile serving` and `docker run -d -p 8000:8000 --name fraud-serving-api adaptive-fraud-serving:v1`
 > 6. **Run Docker verification tests**: `pytest serving/tests/test_phase7_docker.py -v`
 
 ---
