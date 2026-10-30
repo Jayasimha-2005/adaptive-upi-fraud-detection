@@ -47,17 +47,24 @@ def generate_amount(distribution):
     raise ValueError(f"Unknown amount distribution: {distribution}")
 
 
-def generate_synthetic_transaction(cards, fraud_ratio, amount_distribution):
+def generate_synthetic_transaction(cards, fraud_ratio, amount_distribution, index=1):
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+    tx_id = f"TX{100000 + index}"
+    card = random.choice(cards) if cards else f"CARD{random.randint(1, 10):03d}"
+    merchant = random.choice(DEFAULT_MERCHANTS)
+    is_fraud = random.random() < fraud_ratio
+    amount = generate_amount(amount_distribution)
+
     return {
-        "transaction_id": "TX-" + str(uuid.uuid4())[:8],
-        "card_id": random.choice(cards),
-        "amount": generate_amount(amount_distribution),
-        "merchant_id": random.choice(DEFAULT_MERCHANTS),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "transaction_id": tx_id,
+        "card_id": card,
+        "amount": amount,
+        "merchant_id": merchant,
+        "timestamp": now_iso,
         "epoch_timestamp": time.time(),
         "device_type": random.choice(DEFAULT_DEVICES),
         "country": random.choice(DEFAULT_COUNTRIES),
-        "is_fraud": random.random() < fraud_ratio,
+        "is_fraud": is_fraud,
         "dataset_source": "synthetic",
     }
 
@@ -137,7 +144,7 @@ def main():
         raise ValueError("Rate must be greater than 0")
 
     use_dataset = args.dataset.lower() != "synthetic"
-    streamer = DatasetTransactionStreamer(dataset_path=args.dataset, loop=True) if use_dataset else None
+    streamer = DatasetTransactionStreamer(dataset_path=args.dataset, loop=True, max_cards=args.cards) if use_dataset else None
 
     cards = build_cards(args.cards)
     interval = 1.0 / args.rate
@@ -148,9 +155,9 @@ def main():
     print(f"Data Source         : {streamer.dataset_file if streamer and streamer.dataset_file else 'Synthetic'}")
     print(f"Transactions        : {args.count}")
     print(f"Target rate         : {args.rate} tx/sec")
+    print(f"Number of cards     : {args.cards}")
     if not streamer or not streamer.dataset_file:
         print(f"Fraud ratio         : {args.fraud_ratio:.2%}")
-        print(f"Number of cards     : {args.cards}")
         print(f"Amount distribution : {args.amount_distribution}")
     print("=" * 75)
     print()
@@ -165,7 +172,7 @@ def main():
         if streamer and streamer.dataset_file:
             transaction = streamer.next_transaction()
         else:
-            transaction = generate_synthetic_transaction(cards, args.fraud_ratio, args.amount_distribution)
+            transaction = generate_synthetic_transaction(cards, args.fraud_ratio, args.amount_distribution, index=idx)
 
         print(json.dumps(transaction))
         next_send_time += interval

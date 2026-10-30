@@ -1,0 +1,4 @@
+run_id,window,n_observations,triggered_count,features_monitored,triggered,drift_risk_score,action_recommendation,top1_feature,top1_psi
+20261022_102241,month5,119323,17,29,True,82.0,RETRAIN_MODEL,prev_address_months_count,15.9234
+20261022_102241,month6,108168,18,29,True,84.0,RETRAIN_MODEL,prev_address_months_count,15.63
+20261022_102241,month7,96843,17,29,True,82.0,RETRAIN_MODEL,prev_address_months_count,15.356

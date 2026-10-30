@@ -1,0 +1,47 @@
+[
+  {
+    "month": 5,
+    "observations": 119323,
+    "spark_triggered": true,
+    "flink_triggered": true,
+    "spark_triggered_count": 17,
+    "flink_triggered_count": 17,
+    "risk_score": 82.0,
+    "action_recommendation": "RETRAIN_MODEL",
+    "decision_match": true,
+    "spark_top_feature": "prev_address_months_count",
+    "spark_top_psi": 15.9234,
+    "flink_top_feature": "prev_address_months_count",
+    "flink_top_psi": 15.9234
+  },
+  {
+    "month": 6,
+    "observations": 108168,
+    "spark_triggered": true,
+    "flink_triggered": true,
+    "spark_triggered_count": 18,
+    "flink_triggered_count": 18,
+    "risk_score": 84.0,
+    "action_recommendation": "RETRAIN_MODEL",
+    "decision_match": true,
+    "spark_top_feature": "prev_address_months_count",
+    "spark_top_psi": 15.63,
+    "flink_top_feature": "prev_address_months_count",
+    "flink_top_psi": 15.63
+  },
+  {
+    "month": 7,
+    "observations": 96843,
+    "spark_triggered": true,
+    "flink_triggered": true,
+    "spark_triggered_count": 17,
+    "flink_triggered_count": 17,
+    "risk_score": 82.0,
+    "action_recommendation": "RETRAIN_MODEL",
+    "decision_match": true,
+    "spark_top_feature": "prev_address_months_count",
+    "spark_top_psi": 15.356,
+    "flink_top_feature": "prev_address_months_count",
+    "flink_top_psi": 15.356
+  }
+]

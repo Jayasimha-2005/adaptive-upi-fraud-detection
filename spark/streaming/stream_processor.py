@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# type: ignore
 import argparse
 import os
 import sys
@@ -10,17 +12,24 @@ os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
 import pandas as pd
 
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql import functions as F
-from pyspark.sql.types import (
-    StructType,
-    StructField,
-    StringType,
-    DoubleType,
-    TimestampType,
-    ArrayType,
-)
-from pyspark.sql.streaming.state import GroupStateTimeout
+try:
+    from pyspark.sql import SparkSession, DataFrame
+    from pyspark.sql import functions as F
+    from pyspark.sql.types import (
+        StructType,
+        StructField,
+        StringType,
+        DoubleType,
+        TimestampType,
+        ArrayType,
+    )
+    from pyspark.sql.streaming.state import GroupStateTimeout
+except ImportError:
+    SparkSession = None
+    DataFrame = None
+    F = None
+    StructType = StructField = StringType = DoubleType = TimestampType = ArrayType = None
+    GroupStateTimeout = None
 
 
 # ============================================================
@@ -176,31 +185,16 @@ def read_kafka_stream(
 
 TRANSACTION_SCHEMA = StructType(
     [
-        StructField(
-            "transaction_id",
-            StringType(),
-            True,
-        ),
-        StructField(
-            "card_id",
-            StringType(),
-            True,
-        ),
-        StructField(
-            "merchant_id",
-            StringType(),
-            True,
-        ),
-        StructField(
-            "amount",
-            DoubleType(),
-            True,
-        ),
-        StructField(
-            "event_time",
-            TimestampType(),
-            True,
-        ),
+        StructField("transaction_id", StringType(), True),
+        StructField("card_id", StringType(), True),
+        StructField("merchant_id", StringType(), True),
+        StructField("amount", DoubleType(), True),
+        StructField("timestamp", StringType(), True),
+        StructField("epoch_timestamp", DoubleType(), True),
+        StructField("event_time", TimestampType(), True),
+        StructField("device_type", StringType(), True),
+        StructField("country", StringType(), True),
+        StructField("is_fraud", StringType(), True),
     ]
 )
 
@@ -213,8 +207,8 @@ def parse_transactions(
     raw_stream: DataFrame,
 ) -> DataFrame:
     """
-    Convert Kafka binary values into
-    structured transaction records.
+    Convert Kafka binary values into structured transaction records.
+    Supports both Member 1 schema (timestamp/epoch_timestamp) and event_time.
     """
 
     parsed_stream = (
@@ -230,6 +224,15 @@ def parse_transactions(
         )
         .select(
             "transaction.*"
+        )
+        .withColumn(
+            "event_time",
+            F.coalesce(
+                F.col("event_time"),
+                F.to_timestamp(F.col("timestamp")),
+                F.to_timestamp(F.from_unixtime(F.col("epoch_timestamp"))),
+                F.current_timestamp(),
+            )
         )
     )
 

@@ -1,4 +1,6 @@
-"""IEEE-CIS historical processing with PySpark."""
+# pyright: reportMissingImports=false
+# type: ignore
+"""Historical batch processing with PySpark (Supports Bank Account Fraud Base.csv and IEEE-CIS)."""
 
 from __future__ import annotations
 
@@ -6,8 +8,26 @@ import argparse
 from pathlib import Path
 from typing import Optional
 
-from pyspark.sql import DataFrame, SparkSession, Window
-from pyspark.sql import functions as F
+try:
+    from pyspark.sql import DataFrame, SparkSession, Window
+    from pyspark.sql import functions as F
+except ImportError:
+    DataFrame = SparkSession = Window = F = None
+
+
+def resolve_baf_path(custom_path: Optional[str] = None) -> Path:
+    """Finds BAF Base.csv dataset in workspace."""
+    if custom_path and Path(custom_path).exists():
+        return Path(custom_path)
+    base_dir = Path(__file__).resolve().parent.parent.parent
+    candidates = [
+        base_dir / "Datasets" / "BAF" / "Base.csv",
+        base_dir / "Datasets" / "Base.csv",
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return candidates[0]
 
 
 def create_spark(
@@ -25,11 +45,84 @@ def create_spark(
     )
 
 
+def read_baf_dataset(
+    spark: SparkSession,
+    baf_path: Optional[str] = None,
+) -> DataFrame:
+    """
+    Reads and normalizes Bank Account Fraud (BAF Base.csv, 1M rows, 32 features).
+    Matches Member 1's exact card_id key hashing and canonical schema.
+    """
+    resolved_path = resolve_baf_path(baf_path)
+    if not resolved_path.exists():
+        raise FileNotFoundError(f"BAF Base.csv not found at: {resolved_path}")
+
+    print(f"Loading BAF Base.csv from: {resolved_path}")
+    raw_df = (
+        spark.read
+        .option("header", True)
+        .option("inferSchema", True)
+        .csv(str(resolved_path))
+    )
+
+    # Deterministic card_id derivation matching Member 1 dataset_loader.py:
+    # Uses customer demographic seed modulo 100 to generate CARD001 - CARD100
+    seed_expr = F.concat_ws(
+        "_",
+        F.coalesce(F.col("customer_age").cast("string"), F.lit("30")),
+        F.coalesce(F.col("zip_count_4w").cast("string"), F.lit("1000")),
+        F.coalesce(F.col("payment_type").cast("string"), F.lit("AA")),
+        F.coalesce(F.col("month").cast("string"), F.lit("0")),
+        F.coalesce(F.col("employment_status").cast("string"), F.lit("CA")),
+    )
+    card_expr = F.concat(
+        F.lit("CARD"),
+        F.lpad(((F.abs(F.hash(seed_expr)) % 100) + 1).cast("string"), 3, "0"),
+    )
+
+    # Transaction amount normalization
+    amount_expr = F.when(
+        F.col("intended_balcon_amount") > 0,
+        F.col("intended_balcon_amount").cast("double"),
+    ).otherwise(
+        F.round(
+            (F.coalesce(F.col("proposed_credit_limit").cast("double"), F.lit(1500.0)) * 0.35)
+            + F.abs(F.coalesce(F.col("intended_balcon_amount").cast("double"), F.lit(0.0)))
+            + (F.coalesce(F.col("income").cast("double"), F.lit(0.5)) * 500.0),
+            2,
+        )
+    )
+
+    # Relative event sequence in seconds
+    indexed_df = raw_df.withColumn(
+        "TransactionID",
+        F.concat(F.lit("TX"), (F.monotonically_increasing_id() + 100001).cast("string")),
+    ).withColumn(
+        "TransactionDT",
+        (F.monotonically_increasing_id() * 60).cast("long"),
+    ).withColumn(
+        "card_id",
+        card_expr,
+    ).withColumn(
+        "TransactionAmt",
+        amount_expr,
+    ).withColumn(
+        "isFraud",
+        F.when(
+            F.col("fraud_bool").cast("string").isin("1", "True", "true"),
+            F.lit(1),
+        ).otherwise(F.lit(0)),
+    )
+
+    return indexed_df
+
+
 def read_ieee_cis(
     spark: SparkSession,
     transaction_path: str,
     identity_path: Optional[str] = None,
 ) -> DataFrame:
+    """Reads IEEE-CIS dataset for backward compatibility."""
 
     if not Path(transaction_path).exists():
         raise FileNotFoundError(
@@ -326,9 +419,11 @@ def write_aggregation_parquet(
 
 
 def run(
-    transaction_path: str,
-    identity_path: Optional[str],
-    output_path: str,
+    dataset: str = "baf",
+    baf_path: Optional[str] = None,
+    transaction_path: Optional[str] = None,
+    identity_path: Optional[str] = None,
+    output_path: str = "spark/output/batch",
     aggregation_output_path: Optional[str] = None,
     limit: Optional[int] = None,
 ) -> None:
@@ -336,132 +431,106 @@ def run(
     spark = create_spark()
 
     try:
-
         # ---------------------------------------------------------
-        # 1. Read IEEE-CIS transaction + identity data
+        # 1. Read Dataset (BAF Base.csv default or IEEE-CIS)
         # ---------------------------------------------------------
-
-        print("Reading IEEE-CIS dataset...")
-
-        df = read_ieee_cis(
-            spark,
-            transaction_path,
-            identity_path,
-        )
+        if dataset.lower() in ("baf", "base", "base.csv"):
+            print("Reading Bank Account Fraud (BAF Base.csv) dataset...")
+            df = read_baf_dataset(spark, baf_path)
+        else:
+            if not transaction_path:
+                raise ValueError("IEEE-CIS mode requires --transactions path.")
+            print("Reading IEEE-CIS dataset...")
+            df = read_ieee_cis(
+                spark,
+                transaction_path,
+                identity_path,
+            )
 
         # ---------------------------------------------------------
         # 2. Limit rows for testing
         # ---------------------------------------------------------
-
         if limit is not None:
             df = df.limit(limit)
-
-            print(
-                f"TEST MODE: processing only {limit} transactions"
-            )
+            print(f"TEST MODE: processing only {limit} transactions")
 
         # ---------------------------------------------------------
         # 3. Clean transactions
         # ---------------------------------------------------------
-
         print("Cleaning transactions...")
-
         df = clean_transactions(df)
 
         # ---------------------------------------------------------
         # 4. Historical feature engineering
         # ---------------------------------------------------------
-
         print("Adding historical features...")
-
         df = add_historical_features(df)
 
         # ---------------------------------------------------------
         # 5. Write transaction-level output
         # ---------------------------------------------------------
-
-        print(
-            "Writing transaction-level Parquet output..."
-        )
-
-        write_parquet(
-            df,
-            output_path,
-        )
-
-        print(
-            f"Wrote Spark batch output to: {output_path}"
-        )
+        print("Writing transaction-level Parquet output...")
+        write_parquet(df, output_path)
+        print(f"Wrote Spark batch output to: {output_path}")
 
         # ---------------------------------------------------------
         # 6. Card-level aggregation
         # ---------------------------------------------------------
-
         print("Creating card-level aggregation...")
-
         aggregated_df = aggregate_card_history(df)
 
         # ---------------------------------------------------------
         # 7. Default aggregation output path
         # ---------------------------------------------------------
-
         if aggregation_output_path is None:
-            aggregation_output_path = (
-                f"{output_path}_aggregated"
-            )
+            aggregation_output_path = f"{output_path}_aggregated"
 
         # ---------------------------------------------------------
         # 8. Write aggregation output
         # ---------------------------------------------------------
-
-        print(
-            "Writing card-level aggregation..."
-        )
-
-        write_aggregation_parquet(
-            aggregated_df,
-            aggregation_output_path,
-        )
-
-        print(
-            "Wrote card aggregation to: "
-            f"{aggregation_output_path}"
-        )
+        print("Writing card-level aggregation...")
+        write_aggregation_parquet(aggregated_df, aggregation_output_path)
+        print(f"Wrote card aggregation to: {aggregation_output_path}")
 
         # ---------------------------------------------------------
         # 9. Count aggregated cards
         # ---------------------------------------------------------
-
         aggregation_count = aggregated_df.count()
-
-        print(
-            f"Unique cards: {aggregation_count}"
-        )
+        print(f"Unique cards: {aggregation_count}")
 
     finally:
-
         spark.stop()
 
 
 def main() -> None:
 
     parser = argparse.ArgumentParser(
-        description=(
-            "IEEE-CIS historical fraud processing "
-            "using Apache Spark."
-        )
+        description="Historical fraud batch processing using Apache Spark (BAF Base.csv & IEEE-CIS)."
+    )
+
+    parser.add_argument(
+        "--dataset",
+        default="baf",
+        choices=["baf", "ieee_cis"],
+        help="Historical dataset to process (default: baf)",
+    )
+
+    parser.add_argument(
+        "--baf-path",
+        default=None,
+        help="Path to BAF Base.csv (default: auto-detect)",
     )
 
     parser.add_argument(
         "--transactions",
-        required=True,
-        help="Path to train_transaction.csv",
+        default=None,
+        help="Path to train_transaction.csv (if using --dataset ieee_cis)",
     )
 
     parser.add_argument(
         "--identity",
         default=None,
-        help="Path to train_identity.csv",
+        help="Path to train_identity.csv (if using --dataset ieee_cis)",
     )
 
     parser.add_argument(
@@ -486,6 +555,8 @@ def main() -> None:
     args = parser.parse_args()
 
     run(
+        dataset=args.dataset,
+        baf_path=args.baf_path,
         transaction_path=args.transactions,
         identity_path=args.identity,
         output_path=args.output,

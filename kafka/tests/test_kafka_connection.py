@@ -1,4 +1,17 @@
-from kafka import KafkaAdminClient
+import os
+import sys
+
+# Prevent local workspace ./kafka folder from shadowing third-party kafka-python library
+_workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_filtered_path = [p for p in sys.path if os.path.abspath(p) != _workspace_root and p not in ("", ".")]
+_orig_path = list(sys.path)
+sys.path = _filtered_path
+try:
+    from kafka import KafkaAdminClient
+except ImportError:
+    KafkaAdminClient = None
+finally:
+    sys.path = _orig_path
 
 
 BROKER = "localhost:9092"

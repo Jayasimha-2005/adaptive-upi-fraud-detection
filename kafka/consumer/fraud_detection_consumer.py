@@ -29,22 +29,30 @@ def parse_arguments():
 
 def detect_fraud_rules(tx, threshold=5000.0):
     reasons = []
-    
+
     amount = float(tx.get("amount", tx.get("TransactionAmt", 0.0)))
-    country = str(tx.get("country", tx.get("addr2", "US")))
+    country = str(tx.get("country", tx.get("addr2", "IN")))
     dataset_is_fraud = bool(tx.get("is_fraud", tx.get("isFraud", False)))
-    
+    source = tx.get("dataset_source", "")
+
     if dataset_is_fraud:
         reasons.append("Flagged fraudulent in benchmark ground truth dataset")
 
     if amount >= threshold:
         reasons.append(f"High transaction amount exceeds safety threshold (${amount:.2f} >= ${threshold:.2f})")
 
-    if tx.get("location_mismatch") or country == "FOREIGN":
-        reasons.append("Geographic/location mismatch detected")
-
-    if int(tx.get("velocity_24h", 0)) > 5:
-        reasons.append("High 24h card velocity / rapid burst activity")
+    if source == "base.csv":
+        if int(tx.get("foreign_request", 0)) == 1 or country == "US":
+            reasons.append("Cross-border / foreign transaction request")
+        if float(tx.get("credit_risk_score", 100)) < 60:
+            reasons.append("Elevated credit risk score (< 60)")
+        if float(tx.get("velocity_6h", 0.0)) > 12000.0:
+            reasons.append("Extreme 6-hour burst velocity anomaly (> 12,000)")
+    else:
+        if tx.get("location_mismatch") or country == "FOREIGN":
+            reasons.append("Geographic/location mismatch detected")
+        if int(tx.get("velocity_24h", 0)) > 5:
+            reasons.append("High 24h card velocity / rapid burst activity")
 
     return reasons, (len(reasons) > 0 or dataset_is_fraud)
 

@@ -1,8 +1,8 @@
 experiment,parameter,target_rate,actual_throughput,p50_latency_ms,p95_latency_ms,p99_latency_ms,lost_events,dataset
-Exp1_Throughput,100_tx_sec,100,55.82,15.42,30.91,60.48,0,train_transaction.csv
-Exp1_Throughput,500_tx_sec,500,56.93,15.44,30.92,60.45,0,train_transaction.csv
-Exp1_Throughput,1000_tx_sec,1000,56.8,15.35,30.88,33.35,0,train_transaction.csv
-Exp1_Throughput,5000_tx_sec,5000,1118.24,0.03,0.27,0.99,0,train_transaction.csv
-Exp2_Partitions,1_partitions,500,59.15,15.35,29.4,59.58,0,train_transaction.csv
-Exp2_Partitions,3_partitions,500,54.97,15.47,30.7,60.87,0,train_transaction.csv
-Exp2_Partitions,6_partitions,500,57.43,15.43,30.66,31.92,0,train_transaction.csv
+Exp1_Throughput,100_tx_sec,100,97.97,1567.27,2899.82,2938.48,0,Base.csv
+Exp1_Throughput,500_tx_sec,500,490.71,309.57,501.97,506.21,0,Base.csv
+Exp1_Throughput,1000_tx_sec,1000,905.44,76.08,176.68,206.41,0,Base.csv
+Exp1_Throughput,5000_tx_sec,5000,981.24,77.17,173.4,190.96,0,Base.csv
+Exp2_Partitions,1_partitions,1000,976.17,139.41,195.53,207.15,0,Base.csv
+Exp2_Partitions,3_partitions,1000,695.73,192.74,303.89,310.22,0,Base.csv
+Exp2_Partitions,6_partitions,1000,957.33,76.53,169.77,197.24,0,Base.csv
