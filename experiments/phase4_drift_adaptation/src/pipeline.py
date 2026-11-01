@@ -41,6 +41,9 @@ from psi          import PSIDetector
 from threshold    import select_threshold, load_frozen_threshold, apply_threshold
 from evaluation   import compare_periods, compute_metrics
 from bootstrap    import paired_bootstrap_pr_auc, format_bootstrap_result
+from member2_drift_adapter import (validate_and_handoff_drift,
+                                   DriftAwareFeatureAnalysis,
+                                   Member2DriftReport)
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -179,6 +182,13 @@ if psi_result_m5["triggered"]:
     top5 = sorted(psi_result_m5["psi_values"].items(), key=lambda x: -x[1])[:5]
     log(f"  Top shifted features: {[(f, round(v,4)) for f,v in top5]}")
 
+# Member 2 Drift Handoff Integration (Observational / Additive)
+m2_report_m5, m2_analysis_m5 = validate_and_handoff_drift(window=5, engine="spark")
+log(f"  [Member 2 Integration] Ingested Spark Month 5 drift telemetry: "
+    f"{m2_report_m5.drifted_count}/{m2_report_m5.feature_denominator} features shifted "
+    f"(Risk Score: {m2_report_m5.drift_risk_score}/100, Action: {m2_report_m5.action_recommendation})")
+log(f"  [Member 2 Integration] Top shifted features: {m2_report_m5.top_drifted_features[:3]}")
+
 
 # ===========================================================================
 #  STEP 7 — CONDITIONAL v2 RETRAINING
@@ -239,6 +249,13 @@ if psi_result_m6["triggered"]:
     top5 = sorted(psi_result_m6["psi_values"].items(), key=lambda x: -x[1])[:5]
     log(f"  Top shifted features: {[(f, round(v,4)) for f,v in top5]}")
 
+# Member 2 Drift Handoff Integration (Observational / Additive)
+m2_report_m6, m2_analysis_m6 = validate_and_handoff_drift(window=6, engine="spark")
+log(f"  [Member 2 Integration] Ingested Spark Month 6 drift telemetry: "
+    f"{m2_report_m6.drifted_count}/{m2_report_m6.feature_denominator} features shifted "
+    f"(Risk Score: {m2_report_m6.drift_risk_score}/100, Action: {m2_report_m6.action_recommendation})")
+log(f"  [Member 2 Integration] Top shifted features: {m2_report_m6.top_drifted_features[:3]}")
+
 
 # ===========================================================================
 #  STEP 10 — CONDITIONAL v3 RETRAINING
@@ -291,6 +308,13 @@ log(f"  Month 7 Adaptive PR-AUC: {m7_comparison['adaptive']['PR_AUC']:.6f}")
 log(f"  Month 7 Delta:           {m7_comparison['delta_PR_AUC']:+.6f}")
 log("  Month 7 evaluation COMPLETE. No further tuning or retraining permitted.")
 
+# Member 2 Drift Handoff Integration for Month 7 (Observational / Additive)
+m2_report_m7, m2_analysis_m7 = validate_and_handoff_drift(window=7, engine="spark")
+log(f"  [Member 2 Integration] Ingested Spark Month 7 drift telemetry: "
+    f"{m2_report_m7.drifted_count}/{m2_report_m7.feature_denominator} features shifted "
+    f"(Risk Score: {m2_report_m7.drift_risk_score}/100, Action: {m2_report_m7.action_recommendation})")
+log(f"  [Member 2 Integration] Top shifted features: {m2_report_m7.top_drifted_features[:3]}")
+
 
 # ===========================================================================
 #  STEP 12 — PAIRED BOOTSTRAP (both periods)
@@ -330,6 +354,11 @@ results = {
         "triggered":         psi_result_m6["triggered"],
         "triggered_count":   psi_result_m6["triggered_count"],
         "trigger_fraction":  psi_result_m6["trigger_fraction"],
+    },
+    "member2_drift_handoff": {
+        "month5": m2_analysis_m5.summary(),
+        "month6": m2_analysis_m6.summary(),
+        "month7": m2_analysis_m7.summary(),
     },
     "month6_results": m6_comparison,
     "month7_results": m7_comparison,

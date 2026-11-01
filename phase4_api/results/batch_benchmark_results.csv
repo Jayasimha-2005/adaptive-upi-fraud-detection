@@ -1,0 +1,5 @@
+batch_size,batch_requests_count,total_transactions_submitted,successful_transactions,failed_transactions,error_rate,total_duration_seconds,requests_per_second,transactions_per_second,client_latency_avg_ms,client_latency_p50_ms,client_latency_p90_ms,client_latency_p95_ms,client_latency_p99_ms,server_time_avg_ms,server_time_p50_ms,server_time_p95_ms,server_time_p99_ms,count_parity_verified,order_parity_verified,id_preservation_verified
+1,100,100,100,0,0.0,7.539,13.26,13.26,75.159,61.941,129.273,171.346,227.292,58.101,45.579,137.533,197.416,True,True,True
+10,10,100,100,0,0.0,0.121,82.83,828.27,11.82,11.414,12.719,14.247,15.469,7.296,7.091,8.576,9.01,True,True,True
+50,2,100,100,0,0.0,0.032,62.71,3135.67,15.21,15.21,15.238,15.242,15.244,8.849,8.849,8.925,8.931,True,True,True
+100,1,100,100,0,0.0,0.021,46.85,4685.05,19.844,19.844,19.844,19.844,19.844,11.223,11.223,11.223,11.223,True,True,True
